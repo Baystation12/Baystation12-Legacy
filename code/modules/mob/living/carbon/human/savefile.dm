@@ -63,20 +63,21 @@ datum/preferences/proc/hasFile(mob/user)
 				return 1
 	else
 		return 0
-datum/preferences/proc/CreateFile(mob/user)
+datum/preferences/proc/CreateFile(mob/user,var/silent = 0)
 	var/slotCount = 0
 	var/DBQuery/xquery = dbcon.NewQuery("SELECT COUNT(ckey) FROM `players` WHERE ckey=[dbcon.Quote(user.ckey)];");
 	if(xquery.Execute())
 		while(xquery.NextRow())
 			var/list/column_data = xquery.GetRowData()
-			user << column_data["COUNT(ckey)"]
 			if(text2num(column_data["COUNT(ckey)"]) > 0)
 				slotCount = text2num(column_data["COUNT(ckey)"])
 	slotCount++
 	if(slotCount > 10)
 		usr << "You have reached the character limit."
 		return
-	var/slotname = input(usr,"Choose a name for your slot","Name","Default")
+	var/slotname = "Default"
+	if(!silent)
+		slotname = input(usr,"Choose a name for your slot","Name","Default")
 	slotname = dbcon.Quote(slotname)
 	var/DBQuery/query = dbcon.NewQuery("REPLACE INTO `players` (`ckey`,`slot`,`slotname`,`real_name`, `gender`, `age`, `occupation1`, `occupation2`, `occupation3`,`hair_color`, `facial_color`, `skin_tone`, `hairstyle`, `facialstyle`, `eyecolor`, `bloodtype`, `be_syndicate`, `be_nuke_agent`, `be_takeover_agent`, `underwear`,`name_is_always_random`,`bios`,`disabilities`) VALUES ('[user.ckey]','[slotCount]',[slotname] ,'[randomize_name_ret()]', 'male', '30', 'No Preference','No Preference', 'No Preference', '#000000', '#000000',0, 'Short Hair', 'Shaved', '#000000', 'A+', '0', '0', '0', '1','0','Nothing here yet...','0');")
 	if(!query.Execute())
