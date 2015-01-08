@@ -1,3 +1,5 @@
+// Contains all of the various defines and constants required by the library.
+
 //cursors
 #define Default_Cursor 0
 #define Client_Cursor 1
@@ -34,21 +36,29 @@
 #define STRING 13
 #define BLOB 14
 // TODO: Investigate more recent type additions and see if I can handle them. - Nadrew
-
-var
-	DB_SERVER = "" // This is the location of your MySQL server (localhost is USUALLY fine)
-	DB_PORT = 3306 // This is the port your MySQL server is running on (3306 is the default)
+var/
+	DB_SERVER = "localhost" // This is the location of your MySQL server (localhost is USUALLY fine)
+	DB_PORT = 3306 			// This is the port your MySQL server is running on (3306 is the default)
 	DB_DBNAME = ""
 	DB_USER = ""
 	DB_PASSWORD = ""
-
 DBConnection
+	var
+		_db_con 		// This variable contains a reference to the actual database connection.
+		dbi 			// This variable is a string containing the DBI MySQL requires.
+		user 			// This variable contains the username data.
+		password 		// This variable contains the password data.
+		default_cursor  // This contains the default database cursor data.
+		server  // "localhost"
+		port  // 3306
+
 	New(dbi_handler,username,password_handler,cursor_handler)
 		src.dbi = dbi_handler
 		src.user = username
 		src.password = password_handler
 		src.default_cursor = cursor_handler
 		_db_con = _dm_db_new_con()
+
 	proc
 		Connect(dbi_handler=src.dbi,user_handler=src.user,password_handler=src.password,cursor_handler)
 			if(!src) return 0
@@ -63,22 +73,25 @@ DBConnection
 		Quote(str) return _dm_db_quote(_db_con,str)
 
 		ErrorMsg() return _dm_db_error_msg(_db_con)
+
 		SelectDB(database_name,dbi)
 			if(IsConnected()) Disconnect()
 			return Connect("[dbi?"[dbi]":"dbi:mysql:[database_name]:[DB_SERVER]:[DB_PORT]"]",user,password)
+
 		NewQuery(sql_query,cursor_handler=src.default_cursor) return new/DBQuery(sql_query,src,cursor_handler)
 
-	var
-		_db_con // This variable contains a reference to the actual database connection.
-		dbi
-		user
-		password
-		default_cursor // This contains the default database cursor data.
-		//
-		server = "localhost"
-		port = 3306
 
 DBQuery
+	var
+		sql 			// The sql query being executed.
+		default_cursor
+		list/columns 	// list of DB Columns populated by Columns()
+		list/conversions
+		list/item[0]  	// list of data values populated by NextRow()
+
+		DBConnection/db_connection
+		_db_query
+
 	New(sql_query,DBConnection/connection_handler,cursor_handler)
 		if(sql_query) src.sql = sql_query
 		if(connection_handler) src.db_connection = connection_handler
@@ -127,27 +140,18 @@ DBQuery
 		Quote(str)
 			return db_connection.Quote(str)
 
-		SetConversion(column,conversion)
+	/*	SetConversion(column,conversion)
+			// This doesn't seem to be doing anything internally...
 			if(istext(column)) column = columns.Find(column)
 			if(!conversions) conversions = new/list(column)
 			else if(conversions.len < column) conversions.len = column
-			conversions[column] = conversion
-
-	var
-		sql // The sql query being executed.
-		default_cursor
-		list/columns //list of DB Columns populated by Columns()
-		list/conversions
-		list/item[0]  //list of data values populated by NextRow()
-
-		DBConnection/db_connection
-		_db_query
+			conversions[column] = conversion*/
 
 DBColumn
 	var
 		name
 		table
-		position //1-based index into item data
+		position // 1-based index into item data
 		sql_type
 		flags
 		length

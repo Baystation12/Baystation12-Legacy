@@ -43,7 +43,9 @@ mob/new_player
 
 		if(watch_locations.len>0)
 			loc = pick(watch_locations)
-
+		if(!preferences.hasFile(src))
+			src << "\red Createing new savefile"
+			preferences.CreateFile(src)
 		if(!preferences.savefile_load(src,0,1))
 			preferences.ShowChoices(src)
 
