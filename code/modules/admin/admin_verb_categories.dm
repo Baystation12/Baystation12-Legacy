@@ -7,7 +7,6 @@ var/list/admin_verb_categories = list(
 		/client/proc/SDQL_query,
 		/client/proc/SDQL2_query,
 		/client/proc/cmd_debug_del_all,
-		/client/proc/cmd_modify_object_variables,
 		/client/proc/cmd_modify_ticker_variables,
 		/client/proc/cmd_admin_delete,
 		/client/proc/cmd_admin_remove_plasma,

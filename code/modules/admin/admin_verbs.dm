@@ -91,7 +91,6 @@
 			/client/proc/cmd_admin_godmode,
 			/client/proc/cmd_admin_rejuvenate,
 			/client/proc/cmd_admin_robotize,
-			/client/proc/cmd_modify_object_variables,
 			/client/proc/cmd_modify_ticker_variables,
 			/client/proc/Debug2,					//debug toggle switch
 			/client/proc/fix_next_move,
@@ -215,8 +214,6 @@
 				src.averbs += /obj/admins/proc/toggletraitorscaling
 				src.averbs += /client/proc/cmd_admin_drop_everything
 				src.averbs += /client/proc/debug_variables
-				src.averbs += /client/proc/cmd_modify_object_variables
-				src.averbs += /client/proc/cmd_modify_ticker_variables
 				src.averbs += /client/proc/jumptokey
 				src.averbs += /client/proc/jumptomob
 				src.averbs += /client/proc/Jump
