@@ -1,3 +1,4 @@
+/*
 client
 	proc/debug_variables(datum/D in world)
 		set category = "Debug"
@@ -131,7 +132,7 @@ client
 			debug_variables(locate(href_list["Vars"]))
 		else
 			..()
-
+*/
 
 
 /mob/proc/Delete(atom/A in view())

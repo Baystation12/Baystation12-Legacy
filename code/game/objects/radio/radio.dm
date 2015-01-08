@@ -156,8 +156,8 @@ Frequency:
 		heard_normal += R
 
 	if (length(heard_masked) || length(heard_normal) || length(heard_voice) || length(heard_garbled))
-		var/part_a = "<span class='game radio'><span class='name'>"
-		var/part_b = "</span><b> \icon[src]\[[format_frequency(src.frequency)]\]</b> <span class='message'>"
+		var/part_a = "<span class='game radio'><b>\icon[src]\[[format_frequency(src.frequency)]\]</b><span class='name'>"
+		var/part_b = "</span> <span class='message'>"
 		var/part_c = "</span></span>"
 		var/test = say_test(message)
 		var/list/img = list()
@@ -232,8 +232,8 @@ Frequency:
 			imp.hear(message,M)
 
 	if (length(heard_masked) || length(heard_normal) || length(heard_voice) || length(heard_garbled))
-		var/part_a = "<span class='game radio'><span class='name'>"
-		var/part_b = "</span><b> \icon[src]\[[format_frequency(src.frequency)]\]</b> <span class='message'>"
+		var/part_a = "<span class='game radio'><b>\icon[src]\[[format_frequency(src.frequency)]\]</b><span class='name'>"
+		var/part_b = "</span> <span class='message'>"
 		var/part_c = "</span></span>"
 		var/test = say_test(message)
 		var/image/test2 = image('icons/misc/talk.dmi',src,"radio[test]")
@@ -400,8 +400,8 @@ Frequency:
 				heard_garbled += R
 
 	if (length(heard_masked) || length(heard_normal) || length(heard_voice) || length(heard_garbled))
-		var/part_a = "<span class='game securityradio'><span class='name'>"
-		var/part_b = "</span><b> \icon[src]\[[format_frequency(src.security_frequency)]\]</b> <span class='message'>"
+		var/part_a = "<span class='game securityradio'><b>\icon[src]\[[format_frequency(src.security_frequency)]\]</b><span class='name'>"
+		var/part_b = "</span> <span class='message'>"
 		var/part_c = "</span></span>"
 
 		if (length(heard_masked))

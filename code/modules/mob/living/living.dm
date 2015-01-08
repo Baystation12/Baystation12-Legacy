@@ -22,3 +22,38 @@
 
 // overwritten by individual subtypes
 mob/living/proc/radiate(amount)
+
+
+mob/living/proc/adjustBruteLoss(amount)
+	if(amount > 0) // damage
+		var/dmg = amount / src.organs2.len
+		for(var/datum/organ/external/A in src.organs2)
+			A.take_damage(dmg,0)
+	else
+		var/list/damagedOrgans = new()
+		for(var/datum/organ/external/organ in src.organs2)
+			if(organ.brute_dam)
+				damagedOrgans.Add(organ)
+		var/dmg = amount / damagedOrgans.len
+		for(var/datum/organ/external/organ in damagedOrgans)
+			organ.heal_damage(dmg,0,1)
+
+mob/living/proc/adjustFireLoss(amount)
+	if(amount > 0) // damage
+		var/dmg = amount / src.organs2.len
+		for(var/datum/organ/external/A in src.organs2)
+			A.take_damage(0,dmg)
+	else
+		var/list/damagedOrgans = new()
+		for(var/datum/organ/external/organ in src.organs2)
+			if(organ.burn_dam)
+				damagedOrgans.Add(organ)
+		var/dmg = amount / damagedOrgans.len
+		for(var/datum/organ/external/organ in damagedOrgans)
+			organ.heal_damage(dmg,0,1)
+mob/living/proc/adjustToxLoss(amount)
+	src.toxloss = max(0,src.toxloss + (amount))
+mob/living/proc/adjustOxyLoss(amount)
+	src.oxyloss = max(0,src.oxyloss + (amount))
+mob/living/proc/adjustBrainLoss(amount)
+	src.brainloss = max(0,src.brainloss + (amount))

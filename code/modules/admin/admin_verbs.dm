@@ -330,7 +330,8 @@
 
 /client/Topic(href, href_list[], hsrc)
 	..()
-
+	switch(href_list["_src_"])
+		if("vars")		return view_var_Topic(href,href_list,hsrc)
 	if(href_list["averb-set-hide-cat"])
 		if(!src.holder)
 			alert("You are not an admin! How did you get here?!?")

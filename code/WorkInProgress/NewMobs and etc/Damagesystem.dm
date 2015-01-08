@@ -46,7 +46,7 @@
 /mob/living/carbon/human/var/zombietime = 0
 /mob/living/carbon/human/var/zombifying = 0
 /mob/living/carbon/human/var/image/zombieimage = null
-/mob/living/carbon/human/var/organs2 = list()
+/mob/living/var/list/organs2 = list()
 /mob/living/carbon/human/var/datum/organ/external/DEBUG_lfoot
 /mob/living/carbon/human/var/datum/reagents/vessel
 

@@ -234,9 +234,8 @@
 				as icon
 
 
-/client/proc/modify_variables(var/atom/O)
-	//var/list/locked = list("vars", "key", "ckey", "client", "firemut", "ishulk", "telekinesis", "xray", "virus", "cuffed", "ka", "last_eaten", "urine", "poo", "icon", "icon_state")
-	var/list/locked = list()
+
+/client/proc/modify_variables(var/atom/O, var/param_var_name = null, var/autodetect_class = 0)
 	if(!src.holder)
 		src << "Only administrators may use this command."
 		return
@@ -245,88 +244,153 @@
 		usr << "Dun promote yarsalf."
 		return
 
-	var/list/names = list()
-	for (var/V in O.vars)
-		names += V
+	var/list/locked = list("vars", "key", "ckey", "client", "firemut", "ishulk", "telekinesis", "xray", "virus", "cuffed", "ka", "last_eaten", "icon", "icon_state", "mutantrace")
 
-	names = sortList(names)
 
-	var/variable = input("Which var?","Var") as null|anything in names
-	if(!variable)
-		return
-	var/default
-	var/var_value = O.vars[variable]
-	var/dir
+	var/class
+	var/variable
+	var/var_value
 
-	if (locked.Find(variable) && !(src.holder.rank in list("Host", "Coder")))
-		return
+	if(param_var_name)
+		if(!param_var_name in O.vars)
+			src << "A variable with this name ([param_var_name]) doesn't exist in this atom ([O])"
+			return
 
-	if(isnull(var_value))
-		usr << "Unable to determine variable type."
+		if(param_var_name == "holder" || (param_var_name in locked))
+			return
 
-	else if(isnum(var_value))
-		usr << "Variable appears to be <b>NUM</b>."
-		default = "num"
-		dir = 1
+		variable = param_var_name
 
-	else if(istext(var_value))
-		usr << "Variable appears to be <b>TEXT</b>."
-		default = "text"
+		var_value = O.vars[variable]
 
-	else if(isloc(var_value))
-		usr << "Variable appears to be <b>REFERENCE</b>."
-		default = "reference"
+		if(autodetect_class)
+			if(isnull(var_value))
+				usr << "Unable to determine variable type."
+				class = null
+				autodetect_class = null
+			else if(isnum(var_value))
+				usr << "Variable appears to be <b>NUM</b>."
+				class = "num"
+				dir = 1
 
-	else if(isicon(var_value))
-		usr << "Variable appears to be <b>ICON</b>."
-		var_value = "\icon[var_value]"
-		default = "icon"
+			else if(istext(var_value))
+				usr << "Variable appears to be <b>TEXT</b>."
+				class = "text"
 
-	else if(istype(var_value,/atom) || istype(var_value,/datum))
-		usr << "Variable appears to be <b>TYPE</b>."
-		default = "type"
+			else if(isloc(var_value))
+				usr << "Variable appears to be <b>REFERENCE</b>."
+				class = "reference"
 
-	else if(istype(var_value,/list))
-		usr << "Variable appears to be <b>LIST</b>."
-		default = "list"
+			else if(isicon(var_value))
+				usr << "Variable appears to be <b>ICON</b>."
+				var_value = "\icon[var_value]"
+				class = "icon"
 
-	else if(istype(var_value,/client))
-		usr << "Variable appears to be <b>CLIENT</b>."
-		default = "cancel"
+			else if(istype(var_value,/atom) || istype(var_value,/datum))
+				usr << "Variable appears to be <b>TYPE</b>."
+				class = "type"
+
+			else if(istype(var_value,/list))
+				usr << "Variable appears to be <b>LIST</b>."
+				class = "list"
+
+			else if(istype(var_value,/client))
+				usr << "Variable appears to be <b>CLIENT</b>."
+				class = "cancel"
+
+			else
+				usr << "Variable appears to be <b>FILE</b>."
+				class = "file"
 
 	else
-		usr << "Variable appears to be <b>FILE</b>."
-		default = "file"
 
-	usr << "Variable contains: [var_value]"
-	if(dir)
-		switch(var_value)
-			if(1)
-				dir = "NORTH"
-			if(2)
-				dir = "SOUTH"
-			if(4)
-				dir = "EAST"
-			if(8)
-				dir = "WEST"
-			if(5)
-				dir = "NORTHEAST"
-			if(6)
-				dir = "SOUTHEAST"
-			if(9)
-				dir = "NORTHWEST"
-			if(10)
-				dir = "SOUTHWEST"
-			else
-				dir = null
+		var/list/names = list()
+		for (var/V in O.vars)
+			names += V
+
+		names = sortList(names)
+
+		variable = input("Which var?","Var") as null|anything in names
+		if(!variable)	return
+		var_value = O.vars[variable]
+
+		if(variable == "holder" || (variable in locked))
+			return
+
+	if(!autodetect_class)
+
+		var/dir
+		var/default
+		if(isnull(var_value))
+			usr << "Unable to determine variable type."
+
+		else if(isnum(var_value))
+			usr << "Variable appears to be <b>NUM</b>."
+			default = "num"
+			dir = 1
+
+		else if(istext(var_value))
+			usr << "Variable appears to be <b>TEXT</b>."
+			default = "text"
+
+		else if(isloc(var_value))
+			usr << "Variable appears to be <b>REFERENCE</b>."
+			default = "reference"
+
+		else if(isicon(var_value))
+			usr << "Variable appears to be <b>ICON</b>."
+			var_value = "\icon[var_value]"
+			default = "icon"
+
+		else if(istype(var_value,/atom) || istype(var_value,/datum))
+			usr << "Variable appears to be <b>TYPE</b>."
+			default = "type"
+
+		else if(istype(var_value,/list))
+			usr << "Variable appears to be <b>LIST</b>."
+			default = "list"
+
+		else if(istype(var_value,/client))
+			usr << "Variable appears to be <b>CLIENT</b>."
+			default = "cancel"
+
+		else
+			usr << "Variable appears to be <b>FILE</b>."
+			default = "file"
+
+		usr << "Variable contains: [var_value]"
 		if(dir)
-			usr << "If a direction, direction is: [dir]"
+			switch(var_value)
+				if(1)
+					dir = "NORTH"
+				if(2)
+					dir = "SOUTH"
+				if(4)
+					dir = "EAST"
+				if(8)
+					dir = "WEST"
+				if(5)
+					dir = "NORTHEAST"
+				if(6)
+					dir = "SOUTHEAST"
+				if(9)
+					dir = "NORTHWEST"
+				if(10)
+					dir = "SOUTHWEST"
+				else
+					dir = null
+			if(dir)
+				usr << "If a direction, direction is: [dir]"
+// TODO FIX
+//		if(src.holder && src.holder.marked_datum)
+//			class = input("What kind of variable?","Variable Type",default) as null|anything in list("text",
+	//			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default","marked datum ([holder.marked_datum.type])")
+	//	else
+		class = input("What kind of variable?","Variable Type",default) as null|anything in list("text",
+			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default")
 
-	var/class = input("What kind of variable?","Variable Type",default) as null|anything in list("text",
-		"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default")
-
-	if(!class)
-		return
+		if(!class)
+			return
 
 	var/original_name
 
@@ -334,54 +398,77 @@
 		original_name = "\ref[O] ([O])"
 	else
 		original_name = O:name
+// TODO FIX
+//	if(holder.marked_datum && class == "marked datum ([holder.marked_datum.type])")
+//		class = "marked datum"
 
-	if (O)
-		switch(class)
+	switch(class)
 
-			if("list")
-				mod_list(O.vars[variable])
-				return
+		if("list")
+			mod_list(O.vars[variable])
+			return
 
-			if("restore to default")
-				O.vars[variable] = initial(O.vars[variable])
+		if("restore to default")
+			O.vars[variable] = initial(O.vars[variable])
 
-			if("edit referenced object")
-				return .(O.vars[variable])
+		if("edit referenced object")
+			return .(O.vars[variable])
 
-			if("text")
-				O.vars[variable] = input("Enter new text:","Text",\
-					O.vars[variable]) as text
+		if("text")
+			var/var_new = input("Enter new text:","Text",O.vars[variable]) as null|text
+			if(var_new==null) return
+			O.vars[variable] = var_new
 
-			if("num")
-				O.vars[variable] = input("Enter new number:","Num",\
-					O.vars[variable]) as num
+		if("num")
+			if(variable=="luminosity")
+				var/var_new = input("Enter new number:","Num",O.vars[variable]) as null|num
+				if(var_new == null) return
+				O.ul_SetLuminosity(var_new)
+			else if(variable=="stat")
+				var/var_new = input("Enter new number:","Num",O.vars[variable]) as null|num
+				if(var_new == null) return
+				// TODO FIX LAZY
+				/*
+				if((O.vars[variable] == 2) && (var_new < 2))//Bringing the dead back to life
+					dead_mob_list -= O
+					living_mob_list += O
+				if((O.vars[variable] < 2) && (var_new == 2))//Kill he
+					living_mob_list -= O
+					dead_mob_list += O*/
+				O.vars[variable] = var_new
+			else
+				var/var_new =  input("Enter new number:","Num",O.vars[variable]) as null|num
+				if(var_new==null) return
+				O.vars[variable] = var_new
 
-			if("type")
-				O.vars[variable] = input("Enter type:","Type",O.vars[variable]) \
-					in typesof(/obj,/mob,/area,/turf)
+		if("type")
+			var/var_new = input("Enter type:","Type",O.vars[variable]) as null|anything in typesof(/obj,/mob,/area,/turf)
+			if(var_new==null) return
+			O.vars[variable] = var_new
 
-			if("reference")
-				O.vars[variable] = input("Select reference:","Reference",\
-					O.vars[variable]) as mob|obj|turf|area in world
+		if("reference")
+			var/var_new = input("Select reference:","Reference",O.vars[variable]) as null|mob|obj|turf|area in world
+			if(var_new==null) return
+			O.vars[variable] = var_new
 
-			if("mob reference")
-				O.vars[variable] = input("Select reference:","Reference",\
-					O.vars[variable]) as mob in world
+		if("mob reference")
+			var/var_new = input("Select reference:","Reference",O.vars[variable]) as null|mob in world
+			if(var_new==null) return
+			O.vars[variable] = var_new
 
-			if("file")
-				var/temp = input("Pick file:","File",O.vars[variable]) \
-					as file | null
-				if(temp == null)
-					return
-				O.vars[variable] = temp
+		if("file")
+			var/var_new = input("Pick file:","File",O.vars[variable]) as null|file
+			if(var_new==null) return
+			O.vars[variable] = var_new
 
-			if("icon")
-				var/temp = input("Pick icon:","Icon",O.vars[variable]) \
-					as icon | null
-				if(temp == null)
-					return
-				O.vars[variable] = temp
+		if("icon")
+			var/var_new = input("Pick icon:","Icon",O.vars[variable]) as null|icon
+			if(var_new==null) return
+			O.vars[variable] = var_new
 
-		log_admin("[key_name(src)] modified [original_name]'s [variable] to [O.vars[variable]]")
-		message_admins("[key_name_admin(src)] modified [original_name]'s [variable] to [O.vars[variable]]", 1)
+	//	if("marked datum")
+	//		O.vars[variable] = holder.marked_datum
 
+	world.log << "### VarEdit by [src]: [O.type] [variable]=[html_encode("[O.vars[variable]]")]"
+	log_admin("[key_name(src)] modified [original_name]'s [variable] to [O.vars[variable]]")
+	message_admins("[key_name_admin(src)] modified [original_name]'s [variable] to [O.vars[variable]]", 1)
