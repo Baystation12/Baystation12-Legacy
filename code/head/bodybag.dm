@@ -20,6 +20,7 @@ obj/bodybag
 	message = Ellipsis(message, 50)
 	for(var/mob/M in hearers(null, src))
 		M.show_message("You hear \"[message]\" coming from somewhere nearby.", 2)
+	return 1
 
 /obj/bodybag/relaymove(mob/user as mob)
 	if(user.stat)

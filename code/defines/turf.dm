@@ -129,131 +129,121 @@ turf/space/hull/New()
 	heat_capacity = 225000
 	var/broken = 0
 	var/burnt = 0
+/turf
 	var/turf/simulated/floor/open/open = null
 
-	New()
-		..()
-		var/turf/T = locate(x,y,z-1)
-		if(T)
-			if(istype(T, /turf/simulated/floor/open))
-				open = T
+/turf/simulated/floor/New()
+	. = ..()
+	if(type != /turf/simulated/floor/open)
+		var/obj/lattice/L = locate() in src
+		if(L) del L
+	name = "floor"
+	var/turf/T = locate(x,y,z-1)
+	if(T)
+		if(istype(T, /turf/simulated/floor/open))
+			open = T
+			open.update()
+
+/turf/simulated/floor/Enter(var/atom/movable/AM)
+	. = ..()
+	spawn(1)
+		if(AM in src.contents)
+			if(open && istype(open))
 				open.update()
 
-	Enter(var/atom/movable/AM)
-		. = ..()
-		if(open && istype(open))
-			open.update()
+/turf/simulated/floor/Exit(var/atom/movable/AM)
+	. = ..()
+	spawn(1)
+		if(!(AM in src.contents))
+			if(open && istype(open))
+				open.update()
 
-	Exit(var/atom/movable/AM)
-		. = ..()
-		if(open && istype(open))
-			open.update()
+/turf/simulated/floor/airless
+	name = "airless floor"
+	oxygen = 0.01
+	nitrogen = 0.01
+	temperature = TSPC
 
-	airless
-		name = "airless floor"
-		oxygen = 0.01
-		nitrogen = 0.01
-		temperature = TSPC
 
-		New()
-			..()
-			name = "floor"
 
-	open
-		name = "open space"
-		intact = 0
-		icon_state = "open"
-		pathweight = 100000 //Seriously, don't try and path over this one numbnuts
-		var/icon/darkoverlays = null
-		var/turf/floorbelow
-		floorstrength = 1
+/turf/simulated/floor/open
+	name = "open space"
+	intact = 0
+	icon_state = "open"
+	pathweight = 100000 //Seriously, don't try and path over this one numbnuts
+	var/icon/darkoverlays = null
+	var/turf/floorbelow
+	floorstrength = 1
+	layer = 0
+	mouse_opacity = 2
 
-		mouse_opacity = 2
+/turf/simulated/floor/open/New()
+	..()
+	spawn(1)
+		if(!istype(src, /turf/simulated/floor/open)) //This should not be needed but is.
+			return
 
-		New()
-			..()
-			spawn(1)
-				if(!istype(src, /turf/simulated/floor/open)) //This should not be needed but is.
-					return
+		floorbelow = locate(x, y, z + 1)
+		if(floorbelow)
+			floorbelow.open = src
+			//Fortunately, I've done this before. - Aryn
+			if(istype(floorbelow,/turf/space) || floorbelow.z > 4)
+				new/turf/space(src)
+			else
+				if(ticker)
+					find_zone()
+				update()
+		else
+			new/turf/space(src)
 
-				floorbelow = locate(x, y, z + 1)
-				if(floorbelow)
-					//Fortunately, I've done this before. - Aryn
-					if(istype(floorbelow,/turf/space) || floorbelow.z > 4)
-						new/turf/space(src)
-					else if(!istype(floorbelow,/turf/simulated/floor))
-						new/turf/simulated/floor/plating(src)
+/turf/simulated/floor/open/Del()
+	if(floorbelow)
+		if(floorbelow.open == src)
+			floorbelow.open = null
+	. = ..()
+
+
+/turf/simulated/floor/open/Enter(var/atom/movable/AM)
+	if (..()) //TODO make this check if gravity is active (future use) - Sukasa
+		spawn(1)
+			if(AM && !floorbelow.density)
+				var/failed = AM.Move(locate(x, y, z + 1))
+				if (istype(AM, /mob))
+					if(!failed)
+						AM.loc = floorbelow;
+						step_rand(AM,0)
+					if(istype(AM,/mob/living/carbon))
+						var/mob/living/carbon/C = AM
+						var/datum/organ/external/A = C.organs["l_leg"]
+						A.take_damage(10,0)
+						A = C.organs["r_leg"]
+						A.take_damage(10,0)
 					else
-						if(ticker)
-							find_zone()
-						update()
-				else
-					new/turf/space(src)
-				/*
-				switch (T.type) //Somehow, I don't think I thought this cunning plan all the way through - Sukasa
-					if (/turf/simulated/floor)
-						//Do nothing - valid
-					if (/turf/simulated/floor/plating)
-						//Do nothing - valid
-					if (/turf/simulated/floor/engine)
-						//Do nothing - valid
-					if (/turf/simulated/floor/engine/vacuum)
-						//Do nothing - valid
-					if (/turf/simulated/floor/airless)
-						//Do nothing - valid
-					if (/turf/simulated/floor/grid)
-						//Do nothing - valid
-					if (/turf/simulated/floor/plating/airless)
-						//Do nothing - valid
-					if (/turf/simulated/floor/open)
-						//Do nothing - valid
-					if (/turf/space)
-						var/turf/space/F = new(src)									//Then change to a Space tile (no falling into space)
-						F.name = F.name
-						return
-					else
-						var/turf/simulated/floor/plating/F = new(src)				//Then change to a floor tile (no falling into unknown crap)
-						F.name = F.name
-						return*/
-		Del()
-			//if(zone)
-			//	ZDisconnect(src,floorbelow)
-			. = ..()
+						AM:bruteloss += 20 //You were totally doin it wrong. 5 damage? Really? - Aryn
+					AM:weakened = max(AM:weakened,5)
+					AM:updatehealth()
+	return ..()
 
 
-		Enter(var/atom/movable/AM)
-			if (..()) //TODO make this check if gravity is active (future use) - Sukasa
-				spawn(1)
-					if(AM)
-						AM.Move(locate(x, y, z + 1))
-						if (istype(AM, /mob))
-							AM:bruteloss += 20 //You were totally doin it wrong. 5 damage? Really? - Aryn
-							AM:weakened = max(AM:weakened,5)
-							AM:updatehealth()
-			return ..()
+/turf/simulated/floor/open/attackby()
 
 
-		attackby()
+/turf/simulated/floor/open/proc/update() //Update the overlayss to make the openspace turf show what's down a level
+	if(!floorbelow) return
+	src.clearoverlays()
+	src.addoverlay(image(floorbelow, dir=floorbelow.dir, layer = 0))
+	if(!floorbelow.density)
+		for(var/obj/o in floorbelow.contents)
+			src.addoverlay(image(o, dir=o.dir, layer =  1-(1/o.layer)))
+	src.color = rgb(191.25,191.25,191.25)
+	var/image/I = image('icons/effects/ULIcons.dmi', "[min(max(floorbelow.LightLevelRed - 4, 0), 7)]-[min(max(floorbelow.LightLevelGreen - 4, 0), 7)]-[min(max(floorbelow.LightLevelBlue - 4, 0), 7)]")
+	I.layer = TURF_LAYER + 0.2
+	src.addoverlay(I)
+	I = image('icons/effects/ULIcons.dmi', "1-1-1")
+	I.layer = TURF_LAYER + 0.2
+	src.addoverlay(I)
 
-
-		proc
-			update() //Update the overlayss to make the openspace turf show what's down a level
-
-				if(!floorbelow) return
-				src.clearoverlays()
-				src.addoverlay(floorbelow)
-
-				for(var/obj/o in floorbelow.contents)
-					src.addoverlay(image(o, dir=o.dir, layer = TURF_LAYER+0.05*o.layer))
-
-				var/image/I = image('icons/effects/ULIcons.dmi', "[min(max(floorbelow.LightLevelRed - 4, 0), 7)]-[min(max(floorbelow.LightLevelGreen - 4, 0), 7)]-[min(max(floorbelow.LightLevelBlue - 4, 0), 7)]")
-				I.layer = TURF_LAYER + 0.2
-				src.addoverlay(I)
-				I = image('icons/effects/ULIcons.dmi', "1-1-1")
-				I.layer = TURF_LAYER + 0.2
-				src.addoverlay(I)
-
-	plating
+/turf/simulated/floor/plating
 		name = "Plating"
 		icon_state = "plating"
 		intact = 0

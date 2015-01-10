@@ -20,7 +20,7 @@
 
 	// However, if you need to copy-paste a lot of the code below, consider whether it would be better to insert another hook underneath.
 	if(isobj(src.loc))
-		if(src.loc:overrideMobSay(message, src) != "not used") // if the obj has a custom effect
+		if(src.loc:overrideMobSay(message, src)) // if the obj has a custom effect
 			return
 
 	//custom modes

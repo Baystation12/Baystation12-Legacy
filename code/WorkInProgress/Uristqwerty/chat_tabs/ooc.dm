@@ -24,6 +24,8 @@
 		message_admins("[key_name_admin(src)] has attempted to advertise in OOC.")
 		return
 
+	msg = addtext(uppertext(copytext(msg,1,2)), copytext(msg, 2))
+
 	log_ooc("[src.name]/[src.key] : [msg]")
 
 	for (var/client/C)

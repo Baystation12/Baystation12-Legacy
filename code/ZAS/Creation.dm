@@ -16,9 +16,9 @@ zone
 			air.toxins = max(air.toxins,T.toxins)
 			air.temperature = max(air.temperature,T.temperature)
 		air.group_multiplier = contents.len
-		zones += src
+		ZAS_zones += src
 	Del()
-		zones -= src
+		ZAS_zones -= src
 		. = ..()
 
 proc/FloodFill(turf/start)

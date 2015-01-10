@@ -1,5 +1,5 @@
 /mob/proc/say()
-	return
+	return 0
 
 /mob/verb/whisper()
 	return

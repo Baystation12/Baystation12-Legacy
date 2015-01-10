@@ -1,6 +1,6 @@
 turf/var/zone/zone
 
-var/list/zones = list()
+var/list/ZAS_zones = list()
 var/zone_controller/zone_master = new
 
 zone_controller
@@ -10,7 +10,9 @@ zone_controller
 		start()
 			while(1)
 				current_tick++
-				for(var/zone/Z in zones)
+				for(var/zone/Z in ZAS_zones)
+					if(!Z)
+						continue
 					if(Z.last_update < current_tick)
 						Z.process()
 						Z.last_update = current_tick

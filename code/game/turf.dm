@@ -559,11 +559,7 @@ turf/simulated/wall/bullet_act(flag,dir)
 		dismantle_wall()
 	return 0
 
-/turf/simulated/floor/New()
-	. = ..()
-	if(type != /turf/simulated/floor/open)
-		var/obj/lattice/L = locate() in src
-		if(L) del L
+
 
 /turf/simulated/floor/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	if ((istype(mover, /obj/machinery/vehicle) && !(src.burnt)))

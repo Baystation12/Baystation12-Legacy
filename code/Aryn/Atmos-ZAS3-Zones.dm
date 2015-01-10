@@ -127,7 +127,7 @@ zone
 			del src
 			return 0
 
-		zones += src //Add to the zone list
+		ZAS_zones += src //Add to the zone list
 		if(smembers)
 			members = smembers
 			if(!sspace) sspace = list()
