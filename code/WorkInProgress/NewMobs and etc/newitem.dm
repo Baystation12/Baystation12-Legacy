@@ -1,4 +1,4 @@
-/obj/item/proc/process()
+/obj/item/process()
 	processing_items.Remove(src)
 
 	return null

@@ -1,4 +1,4 @@
-/obj/alien/proc/process()
+/obj/alien/process()
 	return
 
 /obj/item/alien/weeds/

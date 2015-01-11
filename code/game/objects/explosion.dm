@@ -41,7 +41,7 @@ proc/explosion(turf/epicenter, devastation_range, heavy_impact_range, light_impa
 		var/list/list/orderdetonate = list( )
 		var/maxdet
 
-		var/list/redo_zones = list()
+
 
 		fillqueue += epicenter
 		checked += epicenter
@@ -54,8 +54,6 @@ proc/explosion(turf/epicenter, devastation_range, heavy_impact_range, light_impa
 			var/turf/T = fillqueue[1]
 			fillqueue -= T
 
-			if(T.zone)
-				redo_zones += T.zone
 
 			if ((floordist[T] > flash_range))
 				continue

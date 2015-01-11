@@ -1045,7 +1045,6 @@ turf/simulated/floor/proc/update_icon()
 
 //attempted bugfix for engine vent being derp, probably has other uses too
 turf/proc/RebuildZone()
-	zone.rebuild = 1
 	/*var/zone/Z = src.zone
 	var/turf/T = Z.starting_tile
 	del Z

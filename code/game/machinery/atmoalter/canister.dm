@@ -87,33 +87,19 @@
 	else
 		return 1
 
-/obj/machinery/portable_atmospherics/canister/process()
 	if (destroyed)
 		return
 
 	..()
 
-	var/datum/gas_mixture/environment
-
-	if(holding)
-		environment = holding.air_contents
-	else if(connected_port)
-		if(istype(connected_port,/obj/machinery/atmos_new/connector))
-			var/datum/UnifiedNetwork/Network = connected_port.Networks[/obj/cabling/flexipipe]
-			if(Network)
-				var/datum/UnifiedNetworkController/FlexipipeNetworkController/Controller = Network.Controller
-				if(Controller)
-					environment = Controller.air_contents
-			if(!environment)
-				environment = loc.return_air()
-		else
-			environment = connected_port.air_contents
-	else
-		environment = loc.return_air()
-
-	var/env_pressure = environment.return_pressure()
-
 	if(valve_open)
+		var/datum/gas_mixture/environment
+		if(holding)
+			environment = holding.air_contents
+		else
+			environment = loc.return_air()
+
+		var/env_pressure = environment.return_pressure()
 		var/pressure_delta = min(release_pressure - env_pressure, (air_contents.return_pressure() - env_pressure)/2)
 		//Can not have a pressure delta that would cause environment pressure > tank pressure
 
@@ -124,18 +110,14 @@
 			//Actually transfer the gas
 			var/datum/gas_mixture/removed = air_contents.remove(transfer_moles)
 
-			if(holding || connected_port)
+			if(holding)
 				environment.merge(removed)
 			else
 				loc.assume_air(removed)
-		else if(pressure_delta < 0 && (holding || connected_port) && air_contents.return_pressure() < src.maximum_pressure)
-			// take in air from outside
-			transfer_moles = -pressure_delta*environment.volume/(air_contents.temperature * R_IDEAL_GAS_EQUATION)
-			var/datum/gas_mixture/removed = environment.remove(transfer_moles)
+			src.update_icon()
 
-			air_contents.merge(removed)
-	//src.updateDialog()
-	src.update_icon()
+	if(air_contents.temperature > PHORON_FLASHPOINT)
+		air_contents.zburn()
 	return
 
 /obj/machinery/portable_atmospherics/canister/return_air()
@@ -238,7 +220,7 @@ Release Pressure: <A href='?src=\ref[src];pressure_adj=-100'>-</A> <A href='?src
 
 	..()
 
-	src.air_contents.toxins = (src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature)
+	src.air_contents.adjust_gas("phoron",(src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature))
 
 	src.update_icon()
 	return 1
@@ -247,7 +229,7 @@ Release Pressure: <A href='?src=\ref[src];pressure_adj=-100'>-</A> <A href='?src
 
 	..()
 
-	src.air_contents.oxygen = (src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature)
+	src.air_contents.adjust_gas("oxygen",(src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature))
 
 	src.update_icon()
 	return 1
@@ -255,10 +237,7 @@ Release Pressure: <A href='?src=\ref[src];pressure_adj=-100'>-</A> <A href='?src
 /obj/machinery/portable_atmospherics/canister/sleeping_agent/New()
 
 	..()
-
-	var/datum/gas/sleeping_agent/trace_gas = new
-	air_contents.trace_gases += trace_gas
-	trace_gas.moles = (src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature)
+	air_contents.adjust_gas("sleeping_agent",(src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature))
 
 	src.update_icon()
 	return 1
@@ -267,7 +246,7 @@ Release Pressure: <A href='?src=\ref[src];pressure_adj=-100'>-</A> <A href='?src
 
 	..()
 
-	src.air_contents.nitrogen = (src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature)
+	src.air_contents.adjust_gas("nitrogen",(src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature))
 
 	src.update_icon()
 	return 1
@@ -275,7 +254,7 @@ Release Pressure: <A href='?src=\ref[src];pressure_adj=-100'>-</A> <A href='?src
 /obj/machinery/portable_atmospherics/canister/carbon_dioxide/New()
 
 	..()
-	src.air_contents.carbon_dioxide = (src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature)
+	src.air_contents.adjust_gas("carbon_dioxide",(src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature))
 
 	src.update_icon()
 	return 1
@@ -284,8 +263,8 @@ Release Pressure: <A href='?src=\ref[src];pressure_adj=-100'>-</A> <A href='?src
 /obj/machinery/portable_atmospherics/canister/air/New()
 
 	..()
-	src.air_contents.oxygen = (O2STANDARD*src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature)
-	src.air_contents.nitrogen = (N2STANDARD*src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature)
+	src.air_contents.adjust_gas("oxygen",(O2STANDARD*src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature))
+	src.air_contents.adjust_gas("nitrogen",(N2STANDARD*src.maximum_pressure*filled)*air_contents.volume/(R_IDEAL_GAS_EQUATION*air_contents.temperature))
 
 	src.update_icon()
 	return 1

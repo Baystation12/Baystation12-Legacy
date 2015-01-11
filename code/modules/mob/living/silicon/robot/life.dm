@@ -80,11 +80,11 @@
 			//var/safe_oxygen_max = 140 // Maximum safe partial pressure of O2, in kPa (Not used for now)
 			var/safe_co2_max = 10
 			var/safe_toxins_max = 0.5
-			var/breath_pressure = (T.air.total_moles()*R_IDEAL_GAS_EQUATION*T.air.temperature)/BREATH_VOLUME
+			var/breath_pressure = (T.air.total_moles*R_IDEAL_GAS_EQUATION*T.air.temperature)/BREATH_VOLUME
 
-			var/O2_pp = (T.air.oxygen/T.air.total_moles())*breath_pressure
-			var/Toxins_pp = (T.air.toxins/T.air.total_moles())*breath_pressure
-			var/CO2_pp = (T.air.carbon_dioxide/T.air.total_moles())*breath_pressure
+			var/O2_pp = (T.air.gas["oxygen"]/T.air.total_moles)*breath_pressure
+			var/Toxins_pp = (T.air.gas["phoron"]/T.air.total_moles)*breath_pressure
+			var/CO2_pp = (T.air.gas["carbon_dioxide"]/T.air.total_moles)*breath_pressure
 
 			if(O2_pp < safe_oxygen_min || CO2_pp > safe_co2_max)
 				oxygen_alert = 1

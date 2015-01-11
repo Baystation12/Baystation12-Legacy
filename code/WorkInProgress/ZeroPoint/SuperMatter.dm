@@ -45,7 +45,7 @@
 	var/datum/gas_mixture/env = L.return_air()
 
 	//Remove gas from surrounding area
-	var/transfer_moles = gasefficency * env.total_moles()
+	var/transfer_moles = gasefficency * env.total_moles
 	var/datum/gas_mixture/removed = env.remove(transfer_moles)
 
 	previousdet = det
@@ -81,7 +81,7 @@
 
 	//Ok, 100% oxygen atmosphere = best reaction
 	//Maxes out at 100% oxygen pressure
-	var/oxygen = max(min((removed.oxygen - (removed.nitrogen * NITROGEN_RETARDATION_FACTOR)) / MOLES_CELLSTANDARD, 1), 0)
+	var/oxygen = max(min((removed.gas["oxygen"] - (removed.gas["nitrogen"] * NITROGEN_RETARDATION_FACTOR)) / MOLES_CELLSTANDARD, 1), 0)
 
 	var/device_energy = oxygen * power
 
@@ -101,9 +101,9 @@
 	removed.temperature = min(removed.temperature, 1500)
 
 	//Calculate how much gas to release
-	removed.toxins += max(round(device_energy / PLASMA_RELEASE_MODIFIER), 0)
+	removed.gas["phoron"] += max(round(device_energy / PLASMA_RELEASE_MODIFIER), 0)
 
-	removed.oxygen += max(round((device_energy + removed.temperature - T0C) / OXYGEN_RELEASE_MODIFIER), 0)
+	removed.gas["oxygen"] += max(round((device_energy + removed.temperature - T0C) / OXYGEN_RELEASE_MODIFIER), 0)
 
 	env.merge(removed)
 

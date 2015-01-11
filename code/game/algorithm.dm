@@ -16,7 +16,7 @@
 	//invite_loadbanfile()
 
 //	beta_tester_loadfile()
-
+	generateGasData()
 	setuptitles()
 	spawn
 		SetupAnomalies()

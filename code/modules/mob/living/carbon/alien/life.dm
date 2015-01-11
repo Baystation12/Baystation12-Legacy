@@ -49,14 +49,14 @@
 	if(istype(loc, /obj/machinery/atmospherics/unary/cryo_cell)) return
 
 	var/datum/gas_mixture/environment = loc.return_air(1)
-	var/datum/air_group/breath
+	var/datum/gas_mixture/breath
 
 	if(istype(loc, /obj/))
 		var/obj/location_as_object = loc
 		breath = location_as_object.handle_internal_lifeform(src, BREATH_VOLUME)
 	else if (istype(loc, /turf/))
 		var/breath_moles = 0
-		breath_moles = environment.total_moles()*BREATH_PERCENTAGE
+		breath_moles = environment.total_moles*BREATH_PERCENTAGE
 		breath = loc.remove_air(breath_moles)
 
 	handle_breath(breath)
@@ -69,28 +69,28 @@
 	if(nodamage)
 		return
 
-	if(!breath || (breath.total_moles() == 0))
+	if(!breath || (breath.total_moles == 0))
 		//Aliens breathe in vaccuum
 		return 0
 
 	var/toxins_used = 0
-	var/breath_pressure = (breath.total_moles()*R_IDEAL_GAS_EQUATION*breath.temperature)/BREATH_VOLUME
+	var/breath_pressure = (breath.total_moles*R_IDEAL_GAS_EQUATION*breath.temperature)/BREATH_VOLUME
 
 	//Partial pressure of the toxins in our breath
-	var/Toxins_pp = (breath.toxins/breath.total_moles())*breath_pressure
+	var/Toxins_pp = (breath.gas["phoron"]/breath.total_moles)*breath_pressure
 
 	if(Toxins_pp) // Detect toxins in air
 
-		toxloss += breath.toxins*250
+		toxloss += breath.gas["phoron"]*250
 		toxins_alert = max(toxins_alert, 1)
 
-		toxins_used = breath.toxins
+		toxins_used = breath.gas["phoron"]
 	else
 		toxins_alert = 0
 
 	//Breathe in toxins and out oxygen
-	breath.toxins -= toxins_used
-	breath.oxygen += toxins_used
+	breath.gas["phoron"] -= toxins_used
+	breath.gas["oxygen"] += toxins_used
 
 	if(breath.temperature > (T0C+66) && !(mutations & 2)) // Hot air hurts :(
 		if(prob(20))
@@ -107,6 +107,7 @@
 	return 1
 
 /mob/living/carbon/alien/handle_temperature_damage(body_part, exposed_temperature, exposed_intensity)
+	return
 
 /mob/living/carbon/alien/handle_random_events()
 

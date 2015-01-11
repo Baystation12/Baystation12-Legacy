@@ -6,7 +6,7 @@
 	machines.Remove(src)
 	..()
 
-/obj/machinery/proc/process()
+/obj/machinery/process()
 	return
 
 /obj/machinery/ex_act(severity)

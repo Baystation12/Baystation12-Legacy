@@ -64,7 +64,7 @@
 		if((environment_pressure < UNSAFE_ATMOSPHERE_L) || (environment_pressure > UNSAFE_ATMOSPHERE_U))
 			safe = 0
 
-	if(safe && ((environment.oxygen < ALERT_O2_L) || (environment.oxygen > ALERT_O2_U)))
+	if(safe && ((environment.gas["oxygen"] < ALERT_O2_L) || (environment.gas["oxygen"] > ALERT_O2_U)))
 		//Oxygen Levels Sensor
 		alert_info = 2
 		safe = 1
@@ -74,12 +74,12 @@
 		alert_info = 3
 		safe = 1
 
-	if(safe && (environment.carbon_dioxide > 0.05))
+	if(safe && (environment.gas["carbon_dioxide"] > 0.05))
 		//CO2 Levels Sensor
 		alert_info = 4
 		safe = 1
 
-	if(safe && (environment.toxins > 1))
+	if(safe && (environment.gas["phoron"] > 1))
 		//Plasma Levels Sensor
 		alert_info = 5
 		safe = 1
@@ -157,7 +157,7 @@
 		var/datum/gas_mixture/environment = location.return_air(1)
 
 		var/pressure = environment.return_pressure()
-		var/total_moles = environment.total_moles()
+		var/total_moles = environment.total_moles
 
 		dat += "\blue <B>[alarm_zone] Atmosphere:</B><br>"
 		if(abs(pressure - ONE_ATMOSPHERE) < 10)
@@ -165,10 +165,10 @@
 		else
 			dat += "\red Pressure: [round(pressure,0.1)] kPa<br>"
 		if(total_moles)
-			var/o2_concentration = environment.oxygen/total_moles
-			var/n2_concentration = environment.nitrogen/total_moles
-			var/co2_concentration = environment.carbon_dioxide/total_moles
-			var/plasma_concentration = environment.toxins/total_moles
+			var/o2_concentration = environment.gas["oxygen"]/total_moles
+			var/n2_concentration = environment.gas["nitrogen"]/total_moles
+			var/co2_concentration = environment.gas["carbon_dioxide"]/total_moles
+			var/plasma_concentration = environment.gas["phoron"]/total_moles
 
 			var/unknown_concentration =  1-(o2_concentration+n2_concentration+co2_concentration+plasma_concentration)
 			if(abs(n2_concentration - N2STANDARD) < 20)

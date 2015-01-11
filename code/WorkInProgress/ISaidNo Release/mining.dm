@@ -769,7 +769,7 @@
 			processing_items.Remove(src)
 			return
 		if(P)
-			if(P.air_contents.toxins <= 0.0)
+			if(P.air_contents.gas["phoron"] <= 0.0)
 				src.active = 0
 				src.force = 5.0
 				src.damtype = "brute"
@@ -784,7 +784,7 @@
 		src.active = !( src.active )
 		if (src.active)
 			if(P)
-				if (P.air_contents.toxins <= 0.00)
+				if (P.air_contents.gas["phoron"] <= 0.00)
 					user << "\blue Need more fuel!"
 					src.active = 0
 					return 0
@@ -833,7 +833,7 @@
 	afterattack(atom/target as mob|obj|turf|area, mob/user as mob, flag)
 		if(active)
 			if(P)
-				P.air_contents.toxins -= 0.01
+				P.air_contents.adjust_gas("phoron",-0.01)
 
 		if (!ismob(target) && target.reagents)
 			usr << "\blue You heat \the [target.name]"

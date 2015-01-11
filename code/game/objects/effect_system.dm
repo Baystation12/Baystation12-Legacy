@@ -741,7 +741,7 @@ steam.start() -- spawns the effect
 			reagents.reaction(A, 1, 1)
 	..()
 
-/obj/effects/foam/proc/process()
+/obj/effects/foam/process()
 	if(--amount < 0)
 		return
 
@@ -931,7 +931,7 @@ steam.start() -- spawns the effect
 
 	// shouldn't this be a general procedure?
 	// not sure if this neccessary or overkill
-	proc/update_nearby_tiles(need_rebuild)
+	update_nearby_tiles(need_rebuild)
 		if(!air_master) return 0
 
 		var/turf/simulated/source = loc
@@ -940,38 +940,11 @@ steam.start() -- spawns the effect
 		var/turf/simulated/east = get_step(source,EAST)
 		var/turf/simulated/west = get_step(source,WEST)
 
-		if(need_rebuild)
-			if(istype(source)) //Rebuild/update nearby group geometry
-				if(source.parent)
-					air_master.groups_to_rebuild += source.parent
-				else
-					air_master.tiles_to_update += source
-			if(istype(north))
-				if(north.parent)
-					air_master.groups_to_rebuild += north.parent
-				else
-					air_master.tiles_to_update += north
-			if(istype(south))
-				if(south.parent)
-					air_master.groups_to_rebuild += south.parent
-				else
-					air_master.tiles_to_update += south
-			if(istype(east))
-				if(east.parent)
-					air_master.groups_to_rebuild += east.parent
-				else
-					air_master.tiles_to_update += east
-			if(istype(west))
-				if(west.parent)
-					air_master.groups_to_rebuild += west.parent
-				else
-					air_master.tiles_to_update += west
-		else
-			if(istype(source)) air_master.tiles_to_update += source
-			if(istype(north)) air_master.tiles_to_update += north
-			if(istype(south)) air_master.tiles_to_update += south
-			if(istype(east)) air_master.tiles_to_update += east
-			if(istype(west)) air_master.tiles_to_update += west
+		if(istype(source)) air_master.mark_for_update(source)
+		if(istype(north)) air_master.mark_for_update(north)
+		if(istype(south)) air_master.mark_for_update(south)
+		if(istype(east)) air_master.mark_for_update(east)
+		if(istype(west)) air_master.mark_for_update(west)
 
 		return 1
 

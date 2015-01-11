@@ -182,7 +182,7 @@
 /mob/proc/Cell()
 	set category = "Admin"
 	set hidden = 1
-
+/*
 	if(!loc) return 0
 
 	var/datum/gas_mixture/environment = loc.return_air(1)
@@ -196,7 +196,7 @@
 	for(var/datum/gas/trace_gas in environment.trace_gases)
 		usr << "\blue [trace_gas.type]: [trace_gas.moles] \n"
 
-	usr.show_message(t, 1)
+	usr.show_message(t, 1)*/
 
 // fun if you want to typecast humans/monkeys/etc without writing long path-filled lines.
 /proc/ishuman(A)
@@ -1097,7 +1097,7 @@ mob/verb/turnwest()
 	user.db_click(name, using)
 	return
 
-/obj/equip_e/proc/process()
+/obj/equip_e/process()
 	return
 
 /obj/equip_e/proc/done()

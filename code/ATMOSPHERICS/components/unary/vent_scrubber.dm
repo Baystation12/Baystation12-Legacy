@@ -35,54 +35,31 @@
 		var/datum/gas_mixture/environment = loc.return_air()
 
 		if(scrubbing)
-			if((environment.toxins>0) || (environment.carbon_dioxide>0.1) || (environment.trace_gases.len>0))
-				var/transfer_moles = min(1, volume_rate/environment.volume)*environment.total_moles()
+			if((environment.gas["phoron"]>0) || (environment.gas["carbon_dioxide"]>0.1))
+				var/transfer_moles = min(1, volume_rate/environment.volume)*environment.total_moles
 
-				//Take a gas sample
-				var/datum/gas_mixture/removed = loc.remove_air(transfer_moles)
-
-				//Filter it
-				if(!removed) return
-				var/datum/gas_mixture/filtered_out = new
-				filtered_out.temperature = removed.temperature
+				var/list/filter = new()
 				if(scrub_Toxins)
-					filtered_out.toxins = removed.toxins
-					removed.toxins = 0
+					filter += "phoron"
 				if(scrub_CO2)
-					filtered_out.carbon_dioxide = removed.carbon_dioxide
-					removed.carbon_dioxide = 0
+					filter += "carbon_dioxide"
 
-				if(removed.trace_gases.len>0)
-					for(var/datum/gas/trace_gas in removed.trace_gases)
-						if(istype(trace_gas, /datum/gas/oxygen_agent_b))
-							removed.trace_gases -= trace_gas
-							filtered_out.trace_gases += trace_gas
-						if(istype(trace_gas, /datum/gas/sleeping_agent))
-							removed.trace_gases -= trace_gas
-							filtered_out.trace_gases += trace_gas
-
-				//Remix the resulting gases
-				air_contents.merge(filtered_out)
-
-				loc.assume_air(removed)
+				scrub_gas(src,filter,environment,air_contents,transfer_moles)
 
 				if(network)
 					network.update = 1
 
 			var/turf/simulated/T = loc
 			if(T.air && T.air.return_pressure() > ONE_ATMOSPHERE*1.05)
-				var/transfer_moles = environment.total_moles()*(volume_rate/environment.volume)
-				var/datum/gas_mixture/removed = loc.remove_air(transfer_moles)
-				air_contents.merge(removed)
+				var/transfer_moles = environment.total_moles*(volume_rate/environment.volume)
+				pump_gas(src,environment,air_contents,transfer_moles)
 				if(network)
 					network.update = 1
 
 		else //Just siphoning all air
-			var/transfer_moles = environment.total_moles()*(volume_rate/environment.volume)
+			var/transfer_moles = environment.total_moles*(volume_rate/environment.volume)
 
-			var/datum/gas_mixture/removed = loc.remove_air(transfer_moles)
-
-			air_contents.merge(removed)
+			pump_gas(src,environment,air_contents,transfer_moles)
 
 			if(network)
 				network.update = 1

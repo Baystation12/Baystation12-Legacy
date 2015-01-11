@@ -446,7 +446,7 @@ proc/remove_microorganism(mob/by)
 	if(!src.holder)
 		src << "Only administrators may use this command."
 		return
-
+/* TODO:2015 FIX
 	if(istype(src.mob.loc, /turf/simulated/floor))
 		var/turf/temp_t = get_turf(src.mob)
 		var/zone/Z = temp_t.zone
@@ -455,7 +455,7 @@ proc/remove_microorganism(mob/by)
 		Z.air.carbon_dioxide = 0
 		Z.air.toxins = 0
 		Z.air.temperature = T20C
-		message_admins("[src.mob]([src.key]) stabilized atmos in [temp_t.loc]")
+		message_admins("[src.mob]([src.key]) stabilized atmos in [temp_t.loc]")*/
 
 /client/proc/toggle_view_range()
 	set category = "Special Verbs"

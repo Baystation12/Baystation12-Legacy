@@ -17,7 +17,7 @@
 	else
 		return 1
 
-/obj/projectile/proc/process()
+/obj/projectile/process()
 	if ((!( src.current ) || src.loc == src.current))
 		src.current = locate(min(max(src.x + src.xo, 1), world.maxx), min(max(src.y + src.yo, 1), world.maxy), src.z)
 	if ((src.x == 1 || src.x == world.maxx || src.y == 1 || src.y == world.maxy))
@@ -190,7 +190,7 @@
 		return
 	return
 
-/obj/beam/i_beam/proc/process()
+/obj/beam/i_beam/process()
 	//world << "i_beam \ref[src] : process"
 
 	if ((src.loc.density || !( src.master )))

@@ -571,9 +571,9 @@
 		if (istype(growing,/datum/plant/plasmabloom) && src.growth > 360)
 			var/turf/T = get_turf(src.loc)
 			var/datum/gas_mixture/environment = T.return_air()
-			if (environment.oxygen > 2)
-				environment.oxygen -= 2
-				environment.toxins += 2
+			if (environment.gas["oxygen"] > 2)
+				environment.adjust_gas("oxygen",-2)
+				environment.adjust_gas("phoron",2)
 		if (istype(growing,/datum/plant/maneater) && src.growth > 60 && prob(1))
 			var/MEspeech = pick("Feed me!", "I'm hungryyyy...", "Give me blood!", "I'm starving!", "What's for dinner?")
 			for(var/mob/O in viewers(src, null)) O.show_message(text("<B>Man-Eating Plant</B> gurgles, '[]'", MEspeech), 1)

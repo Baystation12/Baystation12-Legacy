@@ -102,7 +102,7 @@ obj/railcart/attack_hand(mob/user as mob)
 	else
 		on()
 
-obj/railcart/proc/process()
+obj/railcart/process()
 	while(on)
 		for(var/atom/a in ontop)
 			if(a.loc != loc)

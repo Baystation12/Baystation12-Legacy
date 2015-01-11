@@ -268,11 +268,11 @@ datum
 			check_completion()
 				if(target && target.current)
 					if(target.current.stat == 2)
-						if(vsc.RPREV_REQUIRE_HEADS_ALIVE) return 0
+						if(RPREV_REQUIRE_HEADS_ALIVE) return 0
 					else
 						if(!target.current.handcuffed)
 							return 0
-				else if(vsc.RPREV_REQUIRE_HEADS_ALIVE) return 0
+				else if(RPREV_REQUIRE_HEADS_ALIVE) return 0
 				return 1
 
 			proc/find_target_by_role(var/role)

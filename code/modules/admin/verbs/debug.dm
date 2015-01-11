@@ -116,13 +116,14 @@
 	if (!( istype(T, /turf) ))
 		return
 
-	var/datum/gas_mixture/env = T.return_air(1)
+
 
 	var/t = ""
+	/*
 	t+= "Nitrogen : [env.nitrogen]\n"
 	t+= "Oxygen : [env.oxygen]\n"
 	t+= "Plasma : [env.toxins]\n"
-	t+= "CO2: [env.carbon_dioxide]\n"
+	t+= "CO2: [env.carbon_dioxide]\n"*/
 
 	usr.show_message(t, 1)
 

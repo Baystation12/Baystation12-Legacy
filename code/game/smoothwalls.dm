@@ -68,50 +68,12 @@ turf/proc/update_nearby_tiles(need_rebuild)
 	var/turf/simulated/west = get_step(source,WEST)
 	var/turf/simulated/up = get_step_3d(source,UP)
 	var/turf/simulated/down = get_step_3d(source,DOWN)
-
-	if(need_rebuild)
-		if(istype(source)) //Rebuild/update nearby group geometry
-			if(source.parent)
-				air_master.groups_to_rebuild += source.parent
-			else
-				air_master.tiles_to_update += source
-		if(istype(north))
-			if(north.parent)
-				air_master.groups_to_rebuild += north.parent
-			else
-				air_master.tiles_to_update += north
-		if(istype(south))
-			if(south.parent)
-				air_master.groups_to_rebuild += south.parent
-			else
-				air_master.tiles_to_update += south
-		if(istype(east))
-			if(east.parent)
-				air_master.groups_to_rebuild += east.parent
-			else
-				air_master.tiles_to_update += east
-		if(istype(west))
-			if(west.parent)
-				air_master.groups_to_rebuild += west.parent
-			else
-				air_master.tiles_to_update += west
-		if(istype(up))
-			if(up.parent)
-				air_master.groups_to_rebuild += up.parent
-			else
-				air_master.tiles_to_update += up
-		if(istype(down))
-			if(down.parent)
-				air_master.groups_to_rebuild += down.parent
-			else
-				air_master.tiles_to_update += down
-	else
-		if(istype(source)) air_master.tiles_to_update += source
-		if(istype(north)) air_master.tiles_to_update += north
-		if(istype(south)) air_master.tiles_to_update += south
-		if(istype(east)) air_master.tiles_to_update += east
-		if(istype(west)) air_master.tiles_to_update += west
-		if(istype(up)) air_master.tiles_to_update += up
-		if(istype(down)) air_master.tiles_to_update += down
+	if(istype(source)) air_master.mark_for_update(source)
+	if(istype(north)) air_master.mark_for_update(north)
+	if(istype(south)) air_master.mark_for_update(south)
+	if(istype(east)) air_master.mark_for_update(east)
+	if(istype(west)) air_master.mark_for_update(west)
+	if(istype(up)) air_master.mark_for_update(up)
+	if(istype(down)) air_master.mark_for_update(down)
 
 	return 1

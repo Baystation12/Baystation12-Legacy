@@ -166,7 +166,7 @@
 			add_overlays()
 
 		process_occupant()
-			if(air_contents.total_moles() < 10)
+			if(air_contents.total_moles < 10)
 				return
 			if(occupant)
 				if(occupant.stat == 2)
@@ -177,7 +177,7 @@
 				if(occupant.bodytemperature < T0C)
 					occupant.sleeping = max(5, (1/occupant.bodytemperature)*2000)
 					occupant.paralysis += 0.5
-					if(air_contents.oxygen > 2)
+					if(air_contents.gas["oxygen"] > 2)
 						if(occupant.oxyloss) occupant.oxyloss = max(0, occupant.oxyloss - 1)
 					else
 						occupant.oxyloss -= 1
@@ -200,7 +200,7 @@
 				next_trans = 0
 
 		heat_gas_contents()
-			if(air_contents.total_moles() < 1)
+			if(air_contents.total_moles < 1)
 				return
 			var/air_heat_capacity = air_contents.heat_capacity()
 			var/combined_heat_capacity = current_heat_capacity + air_heat_capacity
@@ -209,10 +209,10 @@
 				air_contents.temperature = combined_energy/combined_heat_capacity
 
 		expel_gas()
-			if(air_contents.total_moles() < 1)
+			if(air_contents.total_moles < 1)
 				return
 			var/datum/gas_mixture/expel_gas = new
-			var/remove_amount = air_contents.total_moles()/100
+			var/remove_amount = air_contents.total_moles/100
 			expel_gas = air_contents.remove(remove_amount)
 			expel_gas.temperature = T20C // Lets expel hot gas and see if that helps people not die as they are removed
 			loc.assume_air(expel_gas)
