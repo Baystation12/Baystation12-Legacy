@@ -182,18 +182,6 @@ proc/send2irc(msg,msg2)
 proc/send2adminirc(channel,msg)
 	world << channel << " "<< msg
 	shell("python26 nudge.py '[channel]' [dbcon.Quote(msg)]")
-proc/replacetext(haystack, needle, replace)
-	if(!haystack || !needle || !replace)
-		return
-	var
-		needleLen = length(needle)
-		replaceLen = length(replace)
-		pos = findtext(haystack, needle)
-	while(pos)
-		haystack = copytext(haystack, 1, pos) + \
-			replace + copytext(haystack, pos+needleLen)
-		pos = findtext(haystack, needle, pos+replaceLen)
-	return haystack
 proc/file2list(A)
 	var/text = file2text(A)
 	var/list/lines = list()
