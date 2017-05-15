@@ -7,8 +7,8 @@
 	var/list/items = list()
 /datum/backpack/proc/Save()
 	for(var/A in items)
-		var/DBQuery/r_query = dbcon.NewQuery("INSERT INTO `backpack` (`ckey`, `type`) VALUES ('[master.ckey]', '[A]')")
-		if(!r_query.Execute())
+		var/database/query/r_query = new("INSERT INTO `backpack` (`ckey`, `type`) VALUES (?, ?)", master.ckey, A)
+		if(!r_query.Execute(dbcon))
 			world << "Failed-[r_query.ErrorMsg()]"
 		else
 			usr << "Saved item successfully."
@@ -16,8 +16,8 @@
 	if(!client)
 		message_admins("ERROR")
 	master = client
-	var/DBQuery/gquery = dbcon.NewQuery("SELECT `type` FROM `backpack` WHERE ckey='[master.ckey]'")
-	if(gquery.Execute())
+	var/database/query/gquery = new("SELECT `type` FROM `backpack` WHERE ckey=?", master.ckey)
+	if(gquery.Execute(dbcon))
 		while(gquery.NextRow())
 			var/list/col = gquery.GetRowData()
 			var/type = text2path(col["type"])
@@ -33,8 +33,8 @@
 	items += text2path(type)
 	Save()
 /datum/backpack/proc/Remove(type)
-	var/DBQuery/gquery = dbcon.NewQuery("REMOVE FROM `backpack` WHERE ckey='[master.ckey]' AND type='[type]'")
-	if(gquery.Execute())
+	var/database/query/gquery = new("REMOVE FROM `backpack` WHERE ckey=? AND type=?", master.ckey, type)
+	if(gquery.Execute(dbcon))
 		usr << "Removed successfully"
 mob/verb/testbackpack()
 	if(client || client.backpack)

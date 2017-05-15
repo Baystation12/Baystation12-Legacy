@@ -11,24 +11,24 @@ var
 
 /proc/invite_add(mob/M)
 	if (!M || !M.key || !M.client) return
-	var/DBQuery/xquery = dbcon.NewQuery("REPLACE INTO `invites` (`ckey`) VALUES ('[M.ckey]')")
-	if(!xquery.Execute())
+	var/database/query/xquery = new("REPLACE INTO `invites` (`ckey`) VALUES (?)", M.ckey)
+	if(!xquery.Execute(dbcon))
 		log_admin("Failed to add invite..")
 		return 0
 	else
 		return 1
 /proc/invite_addtext(ckey as text)
 	if (ckey) return
-	var/DBQuery/xquery = dbcon.NewQuery("REPLACE INTO `invites` (`ckey`) VALUES ('[ckey]')")
-	if(!xquery.Execute())
+	var/database/query/xquery = new("REPLACE INTO `invites` (`ckey`) VALUES (?)", ckey)
+	if(!xquery.Execute(dbcon))
 		log_admin("Failed to add invite..")
 		return 0
 	else
 		return 1
 /proc/invite_isallowed(mob/M)
 	var/found = 0
-	var/DBQuery/xquery = dbcon.NewQuery("SELECT * FROM `invites` WHERE ckey='[M.ckey]'")
-	if(xquery.Execute())
+	var/database/query/xquery = new("SELECT * FROM `invites` WHERE ckey=?", M.ckey)
+	if(xquery.Execute(dbcon))
 		while(xquery.NextRow())
 			var/list/row = xquery.GetRowData()
 			if(row["ckey"] == M.ckey)// it should but you never can be too sure.
@@ -41,8 +41,8 @@ var
 		return 0
 /proc/invite_isallowedtext(var/ckey)
 	var/found = 0
-	var/DBQuery/xquery = dbcon.NewQuery("SELECT * FROM `invites` WHERE ckey='[ckey]'")
-	if(xquery.Execute())
+	var/database/query/xquery = new("SELECT * FROM `invites` WHERE ckey=?", ckey)
+	if(xquery.Execute(dbcon))
 		while(xquery.NextRow())
 			var/list/row = xquery.GetRowData()
 			if(row["ckey"] == ckey)// it should but you never can be too sure.
@@ -53,8 +53,8 @@ var
 		return 0
 
 /*/proc/invite_loadbanfile()
-	var/DBQuery/xquery = dbcon.NewQuery("SELECT * FROM `invites`")
-	if(xquery.Execute())
+	var/database/query/xquery = new("SELECT * FROM `invites`")
+	if(xquery.Execute(dbcon))
 		while(xquery.NextRow())
 			var/list/row = xquery.GetRowData()
 			invite_keylist += row["ckey"]
@@ -65,25 +65,25 @@ var
 */
 /proc/invite_remove(mob/M)
 	if (!M || !M.key || !M.client) return
-	var/DBQuery/xquery = dbcon.NewQuery("DELETE FROM `invites` WHERE ckey='[M.ckey]'")
-	if(!xquery.Execute())
+	var/database/query/xquery = new("DELETE FROM `invites` WHERE ckey=?", M.ckey)
+	if(!xquery.Execute(dbcon))
 		log_admin("Failed to remove invite..")
 		return 0
 	else
 		return 1
 /proc/invite_removetext(ckey as text)
-	var/DBQuery/xquery = dbcon.NewQuery("DELETE FROM `invites` WHERE ckey='[ckey]'")
-	if(!xquery.Execute())
+	var/database/query/xquery = new("DELETE FROM `invites` WHERE ckey=?", ckey)
+	if(!xquery.Execute(dbcon))
 		log_admin("Failed to remove invite..")
 		return 0
 	else
 		return 1
 
 /obj/admins/proc/invite_panel()
-	var/DBQuery/kquery = dbcon.NewQuery("SELECT * FROM `invites`")
+	var/database/query/kquery = new("SELECT * FROM `invites`")
 	var/list/keys = list()
 	var/dat
-	if(!kquery.Execute())
+	if(!kquery.Execute(dbcon))
 		return 0
 	else
 		while(kquery.NextRow())

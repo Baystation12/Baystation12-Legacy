@@ -10,28 +10,28 @@ var/savefile/Banlist
 		id = 0
 	if(address == null)
 		id = 0
-	var/DBQuery/q1 = dbcon.NewQuery("SELECT * FROM `bans` WHERE computerid='[id]'")
-	var/DBQuery/q2 = dbcon.NewQuery("SELECT * FROM `bans` WHERE ckey='[key]'")
-	var/DBQuery/q3 = dbcon.NewQuery("SELECT * FROM `bans` WHERE ips='[address]'")
+	var/database/query/q1 = new("SELECT * FROM `bans` WHERE computerid=?", id)
+	var/database/query/q2 = new("SELECT * FROM `bans` WHERE ckey=?", key)
+	var/database/query/q3 = new("SELECT * FROM `bans` WHERE ips=?", address)
 	var/list/ban = list()
-	if(!q2.Execute())
+	if(!q2.Execute(dbcon))
 		log_admin("[q2.ErrorMsg()]")
 		return 0
 	else
 		while(q2.NextRow()) // i made a hell of mess here pendling rewriteing because its overly complex for a thing like this.
 			if(!isnull(q2.GetRowData()))
 				ban = q2.GetRowData()
-	if(!q1.Execute())
+	if(!q1.Execute(dbcon))
 		log_admin("[q1.ErrorMsg()]")
 		return 0
-	if(!q3.Execute())
+	if(!q3.Execute(dbcon))
 		log_admin("[q3.ErrorMsg()]")
 		return 0
 	else
 		while(q3.NextRow()) // i made a hell of mess here pendling rewriteing because its overly complex for a thing like this.
 			if(!isnull(q3.GetRowData()))
 				ban = q3.GetRowData()
-	if(!q1.Execute())
+	if(!q1.Execute(dbcon))
 		log_admin("[q3.ErrorMsg()]")
 		return 0
 	else
@@ -74,17 +74,17 @@ var/savefile/Banlist
 */
 /proc/ClearTempbans()
 	UpdateTime()
-	var/DBQuery/query = dbcon.NewQuery("SELECT `ckey` FROM `bans`")
-	var/DBQuery/kquery = dbcon.NewQuery("SELECT * FROM `bans`")
+	var/database/query/query = new("SELECT `ckey` FROM `bans`")
+	var/database/query/kquery = new("SELECT * FROM `bans`")
 	var/list/keys = list()
 	var/list/expired = list()
-	if(!query.Execute())
+	if(!query.Execute(dbcon))
 		log_admin("[query.ErrorMsg()]")
 		return 0
 	else
 		while(query.NextRow())
 			keys = query.GetRowData()
-	if(!kquery.Execute())
+	if(!kquery.Execute(dbcon))
 		log_admin("[kquery.ErrorMsg()]")
 		return 0
 	else
@@ -99,29 +99,28 @@ var/savefile/Banlist
 	for(var/p in expired)
 		RemoveBan(p)
 	return 1
-/proc/AddBan(ckey, computerid,ip, reason, bannedby, temp, minutes)
+/proc/AddBan(ckey, computerid, ip, reason, bannedby, temp, minutes)
 	var/bantimestamp = 0
 	if (temp)
 		UpdateTime()
 		bantimestamp = CMinutes + minutes
-	var/reason1 = dbcon.Quote(reason)
-	var/DBQuery/query = dbcon.NewQuery("REPLACE INTO `bans` (`ckey`,`computerid`,`ips`,`reason`,`bannedby`,`temp`,`minute`) VALUES ('[ckey]','[computerid]','[ip]',[reason1],'[bannedby]','[temp]','[bantimestamp]')")
-	if(!query.Execute())
-		message_admins("MYSQL Error ban failed")
+	var/database/query/query = new("REPLACE INTO `bans` (`ckey`,`computerid`,`ips`,`reason`,`bannedby`,`temp`,`minute`) VALUES (?, ?, ?, ?, ?, ?)", ckey, computerid, ip, reason, bannedby, temp, bantimestamp)
+	if(!query.Execute(dbcon))
+		message_admins("ban failed: SQL Error")
 		message_admins(query.ErrorMsg())
 		log_admin(query.ErrorMsg())
 		return 0
 	else
 		return 1
 /proc/RemoveBan(var/ckey)
-	var/DBQuery/qquery = dbcon.NewQuery("INSERT INTO `unbans` SELECT * FROM `bans` WHERE ckey='[ckey]'")
-	if(!qquery.Execute())
-		message_admins("MYSQL Error unban backup failed")
+	var/database/query/qquery = new("INSERT INTO `unbans` SELECT * FROM `bans` WHERE ckey=?", ckey)
+	if(!qquery.Execute(dbcon))
+		message_admins("unban backup failed: SQL Error")
 		message_admins(qquery.ErrorMsg())
 		log_admin(qquery.ErrorMsg())
-	var/DBQuery/query = dbcon.NewQuery("DELETE FROM `bans` WHERE ckey='[ckey]'")
-	if(!query.Execute())
-		message_admins("MYSQL Error unban failed")
+	var/database/query/query = new("DELETE FROM `bans` WHERE ckey=?", ckey)
+	if(!query.Execute(dbcon))
+		message_admins("unban failed: SQL Error")
 		message_admins(query.ErrorMsg())
 		log_admin(query.ErrorMsg())
 		return 0
@@ -149,10 +148,10 @@ var/savefile/Banlist
 		return timeleftstring
 
 /obj/admins/proc/unbanpanel()
-	var/DBQuery/kquery = dbcon.NewQuery("SELECT * FROM `bans`")
+	var/database/query/kquery = new("SELECT * FROM `bans`")
 	var/list/keys = list()
 	var/dat
-	if(!kquery.Execute())
+	if(!kquery.Execute(dbcon))
 		return 0
 	else
 		while(kquery.NextRow())

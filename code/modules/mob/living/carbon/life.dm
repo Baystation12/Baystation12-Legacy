@@ -179,8 +179,8 @@
 		thermal_protection += add_fire_protection(loc_temp)
 		bodytemperature += adjust_body_temperature(bodytemperature, loc_temp, 1/thermal_protection)
 
-	var/turf/simulated/T = loc
-/*	if(istype(T)) // HANDLED BY ZAS TODO:2015
+/*	var/turf/simulated/T = loc // HANDLED BY ZAS TODO:2015
+	if(istype(T))
 		if(T.active_hotspot)
 			var/volume_coefficient = T.active_hotspot.volume / CELL_VOLUME
 			var/resistance_coefficient = 1/max(add_fire_protection(T.active_hotspot.temperature),0.5)

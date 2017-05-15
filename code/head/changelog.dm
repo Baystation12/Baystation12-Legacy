@@ -2,7 +2,7 @@ var/changelogmysql = null
 
 client/proc/showchanges()
 	if(!changelogmysql)
-		var/DBQuery/r_query = dbcon.NewQuery("SELECT * FROM `changelog` ORDER BY `id` DESC")
+		var/database/query/r_query = new("SELECT * FROM `changelog` ORDER BY `id` DESC")
 		changelogmysql += "<head><style type='text/css'>div.ex{width:400px;padding:10px;border-bottom:thin dashed #ff0000;margin:auto;}<body>body{font-size: 9pt;font-family: Verdana, sans-serif;}h1, h2, h3, h4, h5, h6{color: #00f;font-family: Georgia, Arial, sans-serif;}img { border: 0px; }p.lic {font-size: 6pt;}</style></head>"
 		src << browse_rsc('icons/postcardsmall.jpg')
 		src << browse_rsc('icons/somerights20.png')
@@ -40,7 +40,7 @@ client/proc/showchanges()
 
 <h2>Changelog</h2>
 		"}
-		if(!r_query.Execute())
+		if(!r_query.Execute(dbcon))
 			world << "Failed-[r_query.ErrorMsg()]"
 		else
 			var/counter
@@ -62,8 +62,8 @@ client/proc/showchanges()
 client/proc/addchange(var/changes as message)
 	set name = "Add a changelog entry."
 	set category  = "Special Verbs"
-	var/DBQuery/r_query = dbcon.NewQuery("INSERT INTO `changelog` (`changes`, `bywho`) VALUES ('[changes]', '[usr.key]')")
-	if(!r_query.Execute())
+	var/database/query/r_query = new("INSERT INTO `changelog` (`changes`, `bywho`) VALUES (?, ?)", changes, usr.key)
+	if(!r_query.Execute(dbcon))
 		world << "Failed-[r_query.ErrorMsg()]"
 	else
 		usr << "Changelog updated successfully."

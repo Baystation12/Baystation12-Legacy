@@ -177,11 +177,13 @@ client/proc/ChangeMap(var/X as text)
 	//test
 client/proc/testjson()
  	world.makejson()
+/* No.  --Sky
 proc/send2irc(msg,msg2)
  	shell("python26 nudge.py [msg] [msg2]")
 proc/send2adminirc(channel,msg)
 	world << channel << " "<< msg
 	shell("python26 nudge.py '[channel]' [dbcon.Quote(msg)]")
+*/
 proc/file2list(A)
 	var/text = file2text(A)
 	var/list/lines = list()

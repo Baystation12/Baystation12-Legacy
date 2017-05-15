@@ -78,10 +78,10 @@ DBConnection
 			if(IsConnected()) Disconnect()
 			return Connect("[dbi?"[dbi]":"dbi:mysql:[database_name]:[DB_SERVER]:[DB_PORT]"]",user,password)
 
-		NewQuery(sql_query,cursor_handler=src.default_cursor) return new/DBQuery(sql_query,src,cursor_handler)
+		NewQuery(sql_query,cursor_handler=src.default_cursor) return new/database/query(sql_query,src,cursor_handler)
 
 
-DBQuery
+database/query
 	var
 		sql 			// The sql query being executed.
 		default_cursor

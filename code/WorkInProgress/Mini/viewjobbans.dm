@@ -1,6 +1,6 @@
 client/verb/view_job_bans()
-	var/DBQuery/cquery = dbcon.NewQuery("SELECT * FROM `jobban` WHERE ckey='[src.ckey]'")
-	if(!cquery.Execute())
+	var/database/query/cquery = new("SELECT * FROM `jobban` WHERE ckey=?", ckey)
+	if(!cquery.Execute(dbcon))
 		log_admin("[cquery.ErrorMsg()]")
 		src << "Error, please report this."
 		return

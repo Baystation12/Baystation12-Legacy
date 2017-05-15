@@ -29,7 +29,6 @@ datum/controller/game_controller
 			//There can be only one master.
 
 		spawn(0)
-			world.startmysql()
 			world.load_mode()
 			world.load_motd()
 			world.load_rules()

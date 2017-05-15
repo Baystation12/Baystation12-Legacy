@@ -46,8 +46,8 @@
 				admins[m_key] = a_lev
 				diary << ("ADMIN: [m_key] = [a_lev]")
 */
-	var/DBQuery/my_query = dbcon.NewQuery("SELECT * FROM `admins`")
-	if(my_query.Execute())
+	var/database/query/my_query = new("SELECT * FROM `admins`")
+	if(my_query.Execute(dbcon))
 		while(my_query.NextRow())
 			var/list/row  = my_query.GetRowData()
 			var/rank = world.convert_ranks(text2num(row["rank"]))
@@ -160,8 +160,8 @@ proc/ClearClosetSave()
 	var/savefile/F = new("closet.sav")
 	F["list"]<<l*/
 
-	if(makejson)
-		send2irc(world.url,"Server Rebooting!")
+	//if(makejson)
+	//	send2irc(world.url,"Server Rebooting!")
 	world << "\red <B>Rebooting! (This may take a while, just hang on unless you receive an error message!)</B>"
 
 

@@ -11,6 +11,13 @@
 				if(C.inchat) C.ctab_message("Log", rendered)
 				C.mob << output(rendered, "adminoutput")
 
+/proc/log_and_message_admins(var/message as text, var/mob/user = usr, var/turf/location)
+	//var/turf/T = location ? location : (user ? get_turf(user) : null)
+	// message = append_admin_tools(message, user, T)
+
+	log_admin(user ? "[key_name(user)] [message]" : "EVENT [message]")
+	message_admins(user ? "[key_name_admin(user)] [message]" : "EVENT [message]")
+
 /obj/admins/Topic(href, href_list)
 	..()
 
@@ -69,8 +76,8 @@
 	if(href_list["jobban1"])
 		var/key = href_list["jobban1"]
 		var/html = "<B><center>[key]</center></B><br><table border='1'><tr><th>Rank</th><th>By</th><th>Time</th><th>Reason</th><th>Options</th>"
-		var/DBQuery/cquery = dbcon.NewQuery("SELECT * from jobbanlog WHERE targetckey='[key]'")
-		if(!cquery.Execute())
+		var/database/query/cquery = new("SELECT * from jobbanlog WHERE targetckey=?", key)
+		if(!cquery.Execute(dbcon))
 			log_admin("[cquery.ErrorMsg()]")
 		else
 			while(cquery.NextRow())
@@ -108,9 +115,9 @@
 				alert(usr,"This ban is already there or something went to hell.","Error","Ok")
 				invite_panel()
 	if(href_list["unbane"])
-		var/DBQuery/key_query = dbcon.NewQuery("SELECT * FROM `bans` WHERE ckey='[href_list["unbane"]]'")
+		var/database/query/key_query = new("SELECT * FROM `bans` WHERE ckey=?", href_list["unbane"])
 		var/list/ban = list()
-		if(!key_query.Execute())
+		if(!key_query.Execute(dbcon))
 			log_admin("[key_query.ErrorMsg()]")
 		else
 			while(key_query.NextRow())
@@ -143,10 +150,9 @@
 		var/mins2 = (mins + CMinutes)
 		log_admin("[key_name(usr)] edited [banned_key]'s ban. Reason: [reason] Duration: [GetExp(mins2)]")
 		message_admins("\blue [key_name_admin(usr)] edited [banned_key]'s ban. Reason: [reason] Duration: [GetExp(mins2)]", 1)
-		var/reason1 = dbcon.Quote(reason)
-		var/DBQuery/query = dbcon.NewQuery("UPDATE `bans` SET `reason`=[reason1], `temp`='[temp]',`minute`='[mins2]', `bannedby`='[usr.ckey]' WHERE `ckey`='[ban["ckey"]]'")
-		if(!query.Execute())
-			log_admin("[query.ErrorMsg()]")
+		var/database/query/query = new("UPDATE bans SET reason=?, temp=?, minute=?, bannedby=? WHERE ckey=?", reason, temp, mins2, usr.ckey, ban["ckey"])
+		if(!query.Execute(dbcon))
+			log_admin(query.ErrorMsg())
 		unbanpanel()
 
 

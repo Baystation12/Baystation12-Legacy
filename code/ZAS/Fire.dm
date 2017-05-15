@@ -325,11 +325,11 @@ datum/gas_mixture/proc/calculate_firelevel(obj/effect/decal/cleanable/liquid_fue
 	//Burns mobs due to fire. Respects heat transfer coefficients on various body parts.
 	//Due to TG reworking how fireprotection works, this is kinda less meaningful.
 
-	var/head_exposure = 1
-	var/chest_exposure = 1
+	//var/head_exposure = 1
+	//var/chest_exposure = 1
 	var/groin_exposure = 1
-	var/legs_exposure = 1
-	var/arms_exposure = 1
+	//var/legs_exposure = 1
+	//var/arms_exposure = 1
 
 	//Get heat transfer coefficients for clothing.
 
