@@ -89,14 +89,7 @@
 		return 1*/
 		if(pump_direction)
 			//Can not have a pressure delta that would cause environment pressure > tank pressure
-			var/pressure_delta = 10000
-			var/environment_pressure = environment.return_pressure()
-			if(pressure_checks&1)
-				pressure_delta = min(pressure_delta, (external_pressure_bound - environment_pressure))
-			if(pressure_checks&2)
-				pressure_delta = min(pressure_delta, (air_contents.return_pressure() - internal_pressure_bound))
-			if(pressure_delta < 0)
-				return 1
+
 			var/transfer_moles = 0
 			if(air_contents.temperature > 0)
 				transfer_moles = min(1, volume_rate/environment.volume)*environment.total_moles
@@ -109,12 +102,7 @@
 					network.update = 1
 		else
 			//Can not have a pressure delta that would cause environment pressure > tank pressure
-			var/pressure_delta = 10000
-			var/environment_pressure = environment.return_pressure()
-			if(pressure_checks&1)
-				pressure_delta = min(pressure_delta, (environment_pressure - external_pressure_bound))
-			if(pressure_checks&2)
-				pressure_delta = min(pressure_delta, (internal_pressure_bound - air_contents.return_pressure()))
+
 			var/transfer_moles = 0
 			if(environment.temperature > 0)
 				transfer_moles = min(1, volume_rate/environment.volume)*environment.total_moles
