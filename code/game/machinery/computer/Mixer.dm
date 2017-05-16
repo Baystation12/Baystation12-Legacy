@@ -15,6 +15,16 @@
 				mixer.node1_concentration = rates[1] / 100
 				mixer.node2_concentration = rates[2] / 100
 				return
+		for(var/obj/machinery/atmos_new/mixer/M in world)
+			if (M.id == targettag)
+				mixer = M
+				rates[1] = M.node1_concentration * 100
+				rates[2] = 100 - rates[1]
+				rates[1] = min(max(rates[1], 0), 100)
+				rates[2] = min(max(rates[2], 0), 100)
+				mixer.node1_concentration = rates[1] / 100
+				mixer.node2_concentration = rates[2] / 100
+				return
 
 /obj/machinery/computer/atmosphere/mixer/Topic(href, href_list)
 	if(..() || !mixer)
@@ -67,19 +77,19 @@
 		onclose(user, "mixer")
 		return
 
-	var/air1_moles = mixer.air_in1.total_moles
+	var/air1_moles = mixer.air_in1.total_moles()
 	if (!air1_moles)
 		air1_moles = 1
-	var/air2_moles = mixer.air_in2.total_moles
+	var/air2_moles = mixer.air_in2.total_moles()
 	if (!air2_moles)
 		air2_moles = 1
-	var/airO_moles = mixer.air_out.total_moles
+	var/airO_moles = mixer.air_out.total_moles()
 	if (!airO_moles)
 		airO_moles = 1
 
-	var/Air1_Gas = "[round(100*mixer.air_in1.gas["oxygen"]/air1_moles)] %O2 [round(100*mixer.air_in1.gas["carbon_dioxide"]/air1_moles)] %CO2 [round(100*mixer.air_in1.gas["nitrogen"]/air1_moles)] %N2 [round(100*mixer.air_in1.gas["phoron"]/air1_moles)] %PL"
-	var/Air2_Gas = "[round(100*mixer.air_in2.gas["oxygen"]/air2_moles)] %O2 [round(100*mixer.air_in2.gas["carbon_dioxide"]/air2_moles)] %CO2 [round(100*mixer.air_in2.gas["nitrogen"]/air2_moles)] %N2 [round(100*mixer.air_in2.gas["phoron"]/air2_moles)] %PL"
-	var/AirO_Gas = "[round(100*mixer.air_out.gas["oxygen"]/airO_moles)] %O2 [round(100*mixer.air_out.gas["carbon_dioxide"]/airO_moles)] %CO2 [round(100*mixer.air_out.gas["nitrogen"]/airO_moles)] %N2 [round(100*mixer.air_out.gas["phoron"]/airO_moles)] %PL"
+	var/Air1_Gas = "[round(100*mixer.air_in1.oxygen/air1_moles)] %O2 [round(100*mixer.air_in1.carbon_dioxide/air1_moles)] %CO2 [round(100*mixer.air_in1.nitrogen/air1_moles)] %N2 [round(100*mixer.air_in1.toxins/air1_moles)] %PL"
+	var/Air2_Gas = "[round(100*mixer.air_in2.oxygen/air2_moles)] %O2 [round(100*mixer.air_in2.carbon_dioxide/air2_moles)] %CO2 [round(100*mixer.air_in2.nitrogen/air2_moles)] %N2 [round(100*mixer.air_in2.toxins/air2_moles)] %PL"
+	var/AirO_Gas = "[round(100*mixer.air_out.oxygen/airO_moles)] %O2 [round(100*mixer.air_out.carbon_dioxide/airO_moles)] %CO2 [round(100*mixer.air_out.nitrogen/airO_moles)] %N2 [round(100*mixer.air_out.toxins/airO_moles)] %PL"
 
 
 	var/dat = {"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

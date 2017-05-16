@@ -451,7 +451,7 @@
 		return
 
 	// movement process, persists while holder is moving through pipes
-	process()
+	proc/process()
 		sleep(1)
 		var/obj/disposalpipe/last
 		while(active)

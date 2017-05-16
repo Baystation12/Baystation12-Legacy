@@ -221,7 +221,7 @@ GAS ANALYZER
 	var/datum/gas_mixture/environment = location.return_air(1)
 
 	var/pressure = environment.return_pressure()
-	var/total_moles = environment.total_moles
+	var/total_moles = environment.total_moles()
 
 	user.show_message("\blue <B>Results:</B>", 1)
 	if(abs(pressure - ONE_ATMOSPHERE) < 10)
@@ -229,10 +229,10 @@ GAS ANALYZER
 	else
 		user.show_message("\red Pressure: [round(pressure,0.1)] kPa", 1)
 	if(total_moles)
-		var/o2_concentration = environment.gas["oxygen"]/total_moles
-		var/n2_concentration = environment.gas["nitrogen"]/total_moles
-		var/co2_concentration = environment.gas["carbon_dioxide"]/total_moles
-		var/plasma_concentration = environment.gas["phoron"]/total_moles
+		var/o2_concentration = environment.oxygen/total_moles
+		var/n2_concentration = environment.nitrogen/total_moles
+		var/co2_concentration = environment.carbon_dioxide/total_moles
+		var/plasma_concentration = environment.toxins/total_moles
 
 		var/unknown_concentration =  1-(o2_concentration+n2_concentration+co2_concentration+plasma_concentration)
 		if(abs(n2_concentration - N2STANDARD) < 20)

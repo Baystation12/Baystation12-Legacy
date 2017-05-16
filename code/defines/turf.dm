@@ -189,6 +189,9 @@ turf/space/hull/New()
 			//Fortunately, I've done this before. - Aryn
 			if(istype(floorbelow,/turf/space) || floorbelow.z > 4)
 				new/turf/space(src)
+			else
+				if(ticker)
+					find_zone()
 				update()
 		else
 			new/turf/space(src)

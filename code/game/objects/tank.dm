@@ -181,14 +181,14 @@
 
 		var/pressure = air_contents.return_pressure()
 
-		var/total_moles = air_contents.total_moles
+		var/total_moles = air_contents.total_moles()
 
 		user << "\blue Results of analysis of \icon[icon]"
 		if (total_moles>0)
-			var/o2_concentration = air_contents.gas["oxygen"]/total_moles
-			var/n2_concentration = air_contents.gas["nitrogen"]/total_moles
-			var/co2_concentration = air_contents.gas["carbon_dioxide"]/total_moles
-			var/plasma_concentration = air_contents.gas["phoron"]/total_moles
+			var/o2_concentration = air_contents.oxygen/total_moles
+			var/n2_concentration = air_contents.nitrogen/total_moles
+			var/co2_concentration = air_contents.carbon_dioxide/total_moles
+			var/plasma_concentration = air_contents.toxins/total_moles
 
 			var/unknown_concentration =  1-(o2_concentration+n2_concentration+co2_concentration+plasma_concentration)
 
@@ -255,41 +255,47 @@
 
 /obj/item/weapon/tank/air/New()
 	..()
-	src.air_contents.adjust_gas("oxygen",(6*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD)
-	src.air_contents.adjust_gas("nitrogen",(6*ONE_ATMOSPHERE)*src.air_contents.volume/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD)
+	src.air_contents.oxygen = (6*ONE_ATMOSPHERE)*src.air_contents.volume/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD
+	src.air_contents.nitrogen = (6*ONE_ATMOSPHERE)*src.air_contents.volume/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD
 	return
 
 /obj/item/weapon/tank/oxygen/New()
 	..()
-	src.air_contents.adjust_gas("oxygen",(6*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD)
+	src.air_contents.oxygen = (6*ONE_ATMOSPHERE)*src.air_contents.volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 /obj/item/weapon/tank/emergency_oxygen/New()
 	..()
 	src.air_contents.volume = 20 //liters
-	src.air_contents.adjust_gas("oxygen",(1*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD)
+	src.air_contents.oxygen = (1*ONE_ATMOSPHERE)*src.air_contents.volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 
 /obj/item/weapon/tank/anesthetic/New()
 	..()
-	src.air_contents.adjust_gas("oxygen",(3*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD)
-	src.air_contents.adjust_gas("sleeping_agent",(3*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD)
+
+	src.air_contents.oxygen = (3*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD
+
+	var/datum/gas/sleeping_agent/trace_gas = new()
+	trace_gas.moles = (3*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD
+
+	src.air_contents.trace_gases += trace_gas
 	return
 
 /obj/item/weapon/tank/plasma/New()
 	..()
-	src.air_contents.adjust_gas("phoron",(3*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C))
+
+	src.air_contents.toxins = (3*ONE_ATMOSPHERE)*70/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 
 /obj/item/weapon/tank/plasma/proc/release()
-	var/datum/gas_mixture/removed = air_contents.remove(air_contents.total_moles)
+	var/datum/gas_mixture/removed = air_contents.remove(air_contents.total_moles())
 
 	loc.assume_air(removed)
 
 /obj/item/weapon/tank/plasma/proc/ignite()
-	var/fuel_moles = air_contents.gas["phoron"] + air_contents.gas["oxygen"]/6
+	var/fuel_moles = air_contents.toxins + air_contents.oxygen/6
 	var/strength = 1
 
 	var/turf/ground_zero = get_turf(loc)

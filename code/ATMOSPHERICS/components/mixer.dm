@@ -89,8 +89,8 @@ obj/machinery/atmospherics/mixer
 
 
 
-		var/air_in1_moles = air_in1.total_moles
-		var/air_in2_moles = air_in2.total_moles
+		var/air_in1_moles = air_in1.total_moles()
+		var/air_in2_moles = air_in2.total_moles()
 
 
 

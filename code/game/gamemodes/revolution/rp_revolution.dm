@@ -358,7 +358,7 @@
 			var/turf/revloc = rev_mind.current.loc
 			if(!istype(revloc.loc,/area/security/brig) && !rev_mind.current.handcuffed)
 				return 0
-		else if(RPREV_REQUIRE_REVS_ALIVE) return 0
+		else if(vsc.RPREV_REQUIRE_REVS_ALIVE) return 0
 	return 1
 
 /datum/game_mode/rp_revolution/declare_completion()

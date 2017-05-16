@@ -34,17 +34,17 @@
 /*	var/delta_gt
 
 	if(vnode1)
-		delta_gt = FLOWFRAC * ( vnode1.get_gas_val(src) - gas.total_moles / capmult)
+		delta_gt = FLOWFRAC * ( vnode1.get_gas_val(src) - gas.total_moles() / capmult)
 		calc_delta( src, gas, ngas, vnode1, delta_gt)
 	else
 		leak_to_turf(1)
 	if(vnode2)
-		delta_gt = FLOWFRAC * ( vnode2.get_gas_val(src) - gas.total_moles / capmult)
+		delta_gt = FLOWFRAC * ( vnode2.get_gas_val(src) - gas.total_moles() / capmult)
 		calc_delta( src, gas, ngas, vnode2, delta_gt)
 	else
 		leak_to_turf(2)
 	if(vnode3)
-		delta_gt = FLOWFRAC * ( vnode3.get_gas_val(src) - f_gas.total_moles / capmult)
+		delta_gt = FLOWFRAC * ( vnode3.get_gas_val(src) - f_gas.total_moles() / capmult)
 		calc_delta( src, f_gas, f_ngas, vnode3, delta_gt)
 	else
 		leak_to_turf(3)
@@ -59,7 +59,7 @@
 	src.updateUsrDialog()*/ //TODO: FIX
 
 /obj/machinery/pipefilter/get_gas_val(from)
-	return ((from == vnode3) ? f_gas.total_moles : gas.total_moles)/capmult
+	return ((from == vnode3) ? f_gas.total_moles() : gas.total_moles())/capmult
 
 /obj/machinery/pipefilter/get_gas(from)
 	return (from == vnode3) ? f_gas : gas
@@ -169,8 +169,8 @@
 	var/dat = "Filter Release Rate:<BR>\n<A href='?src=\ref[src];fp=-[num2text(src.maxrate, 9)]'>M</A> <A href='?src=\ref[src];fp=-100000'>-</A> <A href='?src=\ref[src];fp=-10000'>-</A> <A href='?src=\ref[src];fp=-1000'>-</A> <A href='?src=\ref[src];fp=-100'>-</A> <A href='?src=\ref[src];fp=-1'>-</A> [src.f_per] <A href='?src=\ref[src];fp=1'>+</A> <A href='?src=\ref[src];fp=100'>+</A> <A href='?src=\ref[src];fp=1000'>+</A> <A href='?src=\ref[src];fp=10000'>+</A> <A href='?src=\ref[src];fp=100000'>+</A> <A href='?src=\ref[src];fp=[num2text(src.maxrate, 9)]'>M</A><BR>\n"
 	for (var/i = 1; i <= gases.len; i++)
 		dat += "[gases[i]]: <A HREF='?src=\ref[src];tg=[1 << (i - 1)]'>[(src.f_mask & 1 << (i - 1)) ? "Releasing" : "Passing"]</A><BR>\n"
-	if(gas.total_moles)
-		var/totalgas = gas.total_moles
+	if(gas.total_moles())
+		var/totalgas = gas.total_moles()
 		var/pressure = round(totalgas / gas.maximum * 100)
 		var/nitrogen = gas.n2 / totalgas * 100
 		var/oxygen = gas.oxygen / totalgas * 100

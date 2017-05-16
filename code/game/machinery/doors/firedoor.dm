@@ -87,12 +87,18 @@
 
 		if(need_rebuild)
 			if(istype(source)) //Rebuild/update nearby group geometry
-				air_master.mark_for_update(source)
+				if(source.parent)
+					air_master.groups_to_rebuild += source.parent
+				else
+					air_master.tiles_to_update += source
 			if(istype(destination))
-				air_master.mark_for_update(destination)
+				if(destination.parent)
+					air_master.groups_to_rebuild += destination.parent
+				else
+					air_master.tiles_to_update += destination
 
 		else
-			if(istype(source)) air_master.mark_for_update(source)
-			if(istype(destination)) air_master.mark_for_update(destination)
+			if(istype(source)) air_master.tiles_to_update += source
+			if(istype(destination)) air_master.tiles_to_update += destination
 
 		return 1

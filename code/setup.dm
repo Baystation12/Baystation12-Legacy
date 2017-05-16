@@ -1,6 +1,5 @@
 #define R_IDEAL_GAS_EQUATION	8.31 * 2 //kPa*L/(K*mol)
 #define ONE_ATMOSPHERE		101.325	//kPa
-#define IDEAL_GAS_ENTROPY_CONSTANT 	1164	//(mol^3 * s^3) / (kg^3 * L). Equal to (4*pi/(avrogadro's number * planck's constant)^2)^(3/2) / (avrogadro's number * 1000 Liters per m^3).
 
 #define CELL_VOLUME 2500	//liters in a cell
 
@@ -8,54 +7,13 @@
 #define O2STANDARD 0.21
 #define N2STANDARD 0.79
 
-//XGM gas flags
-#define XGM_GAS_FUEL 1
-#define XGM_GAS_OXIDIZER 2
-#define XGM_GAS_CONTAMINANT 4
 
-#define PLASMA_HALLUCINATION 1
-#define OXYGEN_LOSS 2
-#define PLASMA_DMG 3
-#define RPREV_REQUIRE_HEADS_ALIVE 0
-#define RPREV_REQUIRE_REVS_ALIVE 0
-//radiation constants
-#define STEFAN_BOLTZMANN_CONSTANT		5.6704e-8	//W/(m^2*K^4)
-#define COSMIC_RADIATION_TEMPERATURE	3.15		//K
-#define AVERAGE_SOLAR_RADIATION			200			//W/m^2. Kind of arbitrary. Really this should depend on the sun position much like solars.
-#define RADIATOR_OPTIMUM_PRESSURE		110			//kPa at 20 C
 
 #define MOLES_PLASMA_VISIBLE	0.5 //Moles in a standard cell after which plasma is visible
 
 #define BREATH_VOLUME 0.5	//liters in a normal breath
-/*
-	Atmos Machinery
-*/
-#define MAX_SIPHON_FLOWRATE		2500	//L/s	This can be used to balance how fast a room is siphoned. Anything higher than CELL_VOLUME has no effect.
-#define MAX_SCRUBBER_FLOWRATE	200		//L/s	Max flow rate when scrubbing from a turf.
 
-//These balance how easy or hard it is to create huge pressure gradients with pumps and filters. Lower values means it takes longer to create large pressures differences.
-//Has no effect on pumping gasses from high pressure to low, only from low to high. Must be between 0 and 1.
-#define ATMOS_PUMP_EFFICIENCY	2.5
-#define ATMOS_FILTER_EFFICIENCY	2.5
 
-//will not bother pumping or filtering if the gas source as fewer than this amount of moles, to help with performance.
-#define MINUMUM_MOLES_TO_PUMP	0.01
-#define MINUMUM_MOLES_TO_FILTER	0.1
-
-//The flow rate/effectiveness of various atmos devices is limited by their internal volume, so for many atmos devices these will control maximum flow rates in L/s
-#define ATMOS_DEFAULT_VOLUME_PUMP	200	//L
-#define ATMOS_DEFAULT_VOLUME_FILTER	200	//L
-#define ATMOS_DEFAULT_VOLUME_MIXER	200	//L
-#define ATMOS_DEFAULT_VOLUME_PIPE	70	//L
-
-#define QUANTIZE(variable)		(round(variable,0.0001))
-//Phoron fire properties
-#define PHORON_MINIMUM_BURN_TEMPERATURE		100+T0C
-#define PHORON_FLASHPOINT 					246+T0C
-#define PHORON_UPPER_TEMPERATURE			1370+T0C
-#define PHORON_MINIMUM_OXYGEN_NEEDED		2
-#define PHORON_MINIMUM_OXYGEN_PHORON_RATIO	20
-#define PHORON_OXYGEN_FULLBURN				10
 
 #define MINIMUM_AIR_RATIO_TO_SUSPEND 0.048
 	//Minimum ratio of air that must move to/from a tile to suspend group processing

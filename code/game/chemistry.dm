@@ -161,9 +161,15 @@
 			//target_tile.parent.suspend_group_processing()
 
 		var/datum/gas_mixture/napalm = new
-		napalm.adjust_gas("volatile_fuel",20)
+		var/datum/gas/volatile_fuel/fuel = new
+
+		fuel.moles = 20
+		napalm.trace_gases += fuel
 
 		target_tile.assume_air(napalm)
+
+		new /obj/liquid_fuel(target_tile)
+
 		spawn target_tile.hotspot_expose(SPARK_TEMP, 400)
 
 	for(var/obj/blob/B in view(8,src))

@@ -685,7 +685,7 @@
 					breath_moles = (ONE_ATMOSPHERE*BREATH_VOLUME/R_IDEAL_GAS_EQUATION*environment.temperature)
 				else*/
 					// Not enough air around, take a percentage of what's there to model this properly
-				breath_moles = environment.total_moles*BREATH_PERCENTAGE
+				breath_moles = environment.total_moles()*BREATH_PERCENTAGE
 
 				breath = loc.remove_air(breath_moles)
 
@@ -704,11 +704,11 @@
 		return
 	if(zombie)
 		oxyloss = 0
-		var/breath_pressure = (breath.total_moles*R_IDEAL_GAS_EQUATION*breath.temperature)/BREATH_VOLUME
-		var/Toxins_pp = (breath.gas["phoron"]/breath.total_moles)*breath_pressure
+		var/breath_pressure = (breath.total_moles()*R_IDEAL_GAS_EQUATION*breath.temperature)/BREATH_VOLUME
+		var/Toxins_pp = (breath.toxins/breath.total_moles())*breath_pressure
 		if(Toxins_pp > 0.5)
 			toxloss += 5
-		var/O2_pp = (breath.gas["oxygen"]/breath.total_moles)*breath_pressure
+		var/O2_pp = (breath.oxygen/breath.total_moles())*breath_pressure
 		if(O2_pp > 16)
 			for(var/datum/organ/external/org in organs2)
 				org.brute_dam = max(0, org.brute_dam - 10)
@@ -762,5 +762,5 @@ snippets
 						src << "\red You collapse from heat exaustion!"
 				plcheck = t_plasma
 				oxcheck = t_oxygen
-				G.turf_add(T, G.total_moles)
+				G.turf_add(T, G.total_moles())
 */

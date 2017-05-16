@@ -1,356 +1,341 @@
-/*
+vs_control/var/IgnitionLevel = 10 //Moles of oxygen+plasma - co2 needed to burn.
 
-Making Bombs with ZAS:
-Make burny fire with lots of burning
-Draw off 5000K gas from burny fire
-Separate gas into oxygen and phoron components
-Obtain phoron and oxygen tanks filled up about 50-75% with normal-temp gas
-Fill rest with super hot gas from separated canisters, they should be about 125C now.
-Attach to transfer valve and open. BOOM.
-
-*/
-
-/turf/var/obj/fire/fire = null
-
-//Some legacy definitions so fires can be started.
+#define OXYGEN
 atom/proc/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	return null
 
-
 turf/proc/hotspot_expose(exposed_temperature, exposed_volume, soh = 0)
 
-
 turf/simulated/hotspot_expose(exposed_temperature, exposed_volume, soh)
-	if(fire_protection > world.time-300)
+	if(fire_protection) return
+	var/datum/gas_mixture/air_contents = return_air(1)
+	if(!air_contents)
 		return 0
+
+  /*if(active_hotspot)
+		if(soh)
+			if(air_contents.toxins > 0.5 && air_contents.oxygen > 0.5)
+				if(active_hotspot.temperature < exposed_temperature)
+					active_hotspot.temperature = exposed_temperature
+				if(active_hotspot.volume < exposed_volume)
+					active_hotspot.volume = exposed_volume
+		return 1*/
+	var/igniting = 0
 	if(locate(/obj/fire) in src)
 		return 1
-	var/datum/gas_mixture/air_contents = return_air()
-	if(!air_contents || exposed_temperature < PHORON_MINIMUM_BURN_TEMPERATURE)
-		return 0
-
-	var/igniting = 0
-	var/obj/effect/decal/cleanable/liquid_fuel/liquid = locate() in src
-
-	if(air_contents.check_combustability(liquid))
+	var/datum/gas/volatile_fuel/fuel = locate() in air_contents.trace_gases
+	var/obj/liquid_fuel/liquid = locate() in src
+	var/fuel_level = 0
+	var/liquid_level = 0
+	if(fuel) fuel_level = fuel.moles
+	if(liquid) liquid_level = liquid.amount
+	var/total_fuel = air_contents.toxins + fuel_level + liquid_level
+	if((air_contents.oxygen + air_contents.toxins + fuel_level*1.5 + liquid_level*1.5) - (air_contents.carbon_dioxide*0.25) > vsc.IgnitionLevel && total_fuel > 0.5)
 		igniting = 1
+		if(air_contents.oxygen < 0.5)
+			return 0
 
-		create_fire(1000)
+		if(parent&&parent.group_processing)
+			parent.suspend_group_processing()
+
+		if(! (locate(/obj/fire) in src))
+			var/obj/fire/F = new(src,1000)
+			F.temperature = exposed_temperature
+			F.volume = CELL_VOLUME
+
+		//active_hotspot.just_spawned = (current_cycle < air_master.current_cycle)
+		//remove just_spawned protection if no longer processing this cell
+
 	return igniting
 
-/zone/proc/process_fire()
-	if(!air.check_combustability())
-		for(var/turf/simulated/T in fire_tiles)
-			if(istype(T.fire))
-				T.fire.RemoveFire()
-			T.fire = null
-		fire_tiles.Cut()
-
-	if(!fire_tiles.len)
-		air_master.active_fire_zones.Remove(src)
-		return
-
-	var/datum/gas_mixture/burn_gas = air.remove_ratio(vsc.fire_consuption_rate, fire_tiles.len)
-	var/gm = burn_gas.group_multiplier
-
-	burn_gas.group_multiplier = 1
-	burn_gas.zburn(force_burn = 1, no_check = 1)
-	burn_gas.group_multiplier = gm
-
-	air.merge(burn_gas)
-
-	var/firelevel = air.calculate_firelevel()
-
-	for(var/turf/T in fire_tiles)
-		if(T.fire)
-			T.fire.firelevel = firelevel
-		else
-			fire_tiles -= T
-
-/turf/proc/create_fire(fl)
-	return 0
-
-/turf/simulated/create_fire(fl)
-	if(fire)
-		fire.firelevel = max(fl, fire.firelevel)
-		return 1
-
-	if(!zone)
-		return 1
-
-	fire = new(src, fl)
-	zone.fire_tiles |= src
-	air_master.active_fire_zones |= zone
-	return 0
-
-/obj/fire
-	//Icon for fire on turfs.
+obj/hotspot
+	//Icon for fire on turfs, also helps for nurturing small fires until they are full tile
 
 	anchored = 1
+
 	mouse_opacity = 0
 
 	//luminosity = 3
 
 	icon = 'icons/effects/fire.dmi'
 	icon_state = "1"
-//	l_color = "#ED9200"
+
 	layer = TURF_LAYER
 
-	var/firelevel = 10000 //Calculated by gas_mixture.calculate_firelevel()
-/atom/proc/fire_act()
-/atom/proc/adjacent_fire_act()
-/obj/proc/process() // HELP? TODO:2015
- return 0
-/obj/fire/process()
-	. = 1
+	var
+		volume = 125
+		temperature = FIRE_MINIMUM_TEMPERATURE_TO_EXIST
 
-	var/turf/simulated/my_tile = loc
-	if(!istype(my_tile) || !my_tile.zone)
-		if(my_tile.fire == src)
-			my_tile.fire = null
-		RemoveFire()
-		return 1
+		just_spawned = 1
 
-	var/datum/gas_mixture/air_contents = my_tile.return_air()
+		bypassing = 0
 
-	if(firelevel > 6)
-		icon_state = "3"
-		ul_SetLuminosity(7)
-	else if(firelevel > 2.5)
-		icon_state = "2"
-		ul_SetLuminosity(5)
+obj/hotspot/proc/perform_exposure()
+	var/turf/simulated/floor/location = loc
+	if(!istype(location))
+		return 0
+
+	if(volume > CELL_VOLUME*0.95)
+		bypassing = 1
+	else bypassing = 0
+
+	if(bypassing)
+		if(!just_spawned)
+			volume = location.air.fuel_burnt*FIRE_GROWTH_RATE
+			temperature = location.air.temperature
 	else
-		icon_state = "1"
-		ul_SetLuminosity(3)
+		var/datum/gas_mixture/affected = location.air.remove_ratio(volume/location.air.volume)
 
-	//im not sure how to implement a version that works for every creature so for now monkeys are firesafe
-	for(var/mob/living/carbon/human/M in loc)
-		M.FireBurn(firelevel, air_contents.temperature, air_contents.return_pressure())  //Burn the humans!
+		affected.temperature = temperature
 
-	loc.fire_act(air_contents, air_contents.temperature, air_contents.volume)
-	for(var/atom/A in loc)
-		A.fire_act(air_contents, air_contents.temperature, air_contents.volume)
+		affected.react()
 
-	//spread
-	for(var/direction in cardinal)
-		var/turf/simulated/enemy_tile = get_step(my_tile, direction)
+		temperature = affected.temperature
+		volume = affected.fuel_burnt*FIRE_GROWTH_RATE
 
-		if(istype(enemy_tile))
-			if(my_tile.open_directions & direction) //Grab all valid bordering tiles
-				if(!enemy_tile.zone || enemy_tile.fire)
-					continue
+		location.assume_air(affected)
 
-				if(!enemy_tile.zone.fire_tiles.len)
-					var/datum/gas_mixture/acs = enemy_tile.return_air()
-					if(!acs || !acs.check_combustability())
-						continue
+		for(var/atom/item in loc)
+			item.temperature_expose(null, temperature, volume)
 
-				//If extinguisher mist passed over the turf it's trying to spread to, don't spread and
-				//reduce firelevel.
-				if(enemy_tile.fire_protection > world.time-30)
-					firelevel -= 1.5
-					continue
+obj/hotspot/proc/process(turf/simulated/list/possible_spread)
+	if(just_spawned)
+		just_spawned = 0
+		return 0
 
-				//Spread the fire.
-				if(prob( 50 + 50 * (firelevel/vsc.fire_firelevel_multiplier) ) && my_tile.CanPass(null, enemy_tile, 0,0) && enemy_tile.CanPass(null, my_tile, 0,0))
-					enemy_tile.create_fire(firelevel)
+	var/turf/simulated/floor/location = loc
+	if(!istype(location))
+		del(src)
 
-			else
-				enemy_tile.adjacent_fire_act(loc, air_contents, air_contents.temperature, air_contents.volume)
+	if((temperature < FIRE_MINIMUM_TEMPERATURE_TO_EXIST) || (volume <= 1))
+		del(src)
 
-/obj/fire/New(newLoc,fl)
+	if(location.air.toxins < 0.5 || location.air.oxygen < 0.5)
+		del(src)
+
+
+	perform_exposure()
+
+	if(location.wet) location.wet = 0
+
+	if(bypassing)
+		icon_state = "3"
+		location.burn_tile()
+
+		//Possible spread due to radiated heat
+		if(location.air.temperature > FIRE_MINIMUM_TEMPERATURE_TO_SPREAD)
+			var/radiated_temperature = location.air.temperature*FIRE_SPREAD_RADIOSITY_SCALE
+
+			for(var/turf/simulated/possible_target in possible_spread)
+				if(!possible_target.active_hotspot)
+					possible_target.hotspot_expose(radiated_temperature, CELL_VOLUME/4)
+
+	else
+		if(volume > CELL_VOLUME*0.4)
+			icon_state = "2"
+		else
+			icon_state = "1"
+
+	return 1
+
+obj/hotspot/New()
 	..()
-
-	if(!istype(loc, /turf))
-		del src
-
-	set_dir(pick(cardinal))
+	dir = pick(cardinal)
 	ul_SetLuminosity(3)
-	firelevel = fl
-	air_master.active_hotspots.Add(src)
 
-
-/obj/fire/Del()
-	if (istype(loc, /turf/simulated))
-		ul_SetLuminosity(0)
-
-		loc = null
-	air_master.active_hotspots.Remove(src)
-
+obj/hotspot/Del()
+	loc:active_hotspot = null
+	src.ul_SetLuminosity(0)
+	loc = null
 	..()
 
-/obj/fire/proc/RemoveFire()
-	if (istype(loc, /turf))
-		ul_SetLuminosity(0)
-		loc = null
-	air_master.active_hotspots.Remove(src)
+var
+	fire_ratio_1 = 0.05
+
+obj
+	fire
+		//Icon for fire on turfs, also helps for nurturing small fires until they are full tile
+
+		anchored = 1
+		mouse_opacity = 0
+
+		//luminosity = 3
+
+		icon = 'icons/effects/fire.dmi'
+		icon_state = "1"
+
+		layer = TURF_LAYER
+
+		var
+			volume = CELL_VOLUME
+			temperature = FIRE_MINIMUM_TEMPERATURE_TO_EXIST
+			firelevel = 10000
+			archived_firelevel = 0
+
+		proc/process()
+			if(firelevel > vsc.IgnitionLevel)
+				var/turf/simulated/floor/S = loc
+				if(!S.zone) del src
+				//src.temperature += (src.firelevel/FireTempDivider+FireOffset - src.temperature) / FireRate
+				if(istype(S,/turf/simulated/floor))
+					var
+						datum/gas_mixture/air_contents = S.return_air()
+						datum/gas/volatile_fuel/fuel = locate(/datum/gas/volatile_fuel/) in air_contents.trace_gases
+						fuel_level = 0
+						obj/liquid_fuel/liquid = locate() in S
+						liquid_level = 0
+
+					if(fuel) fuel_level = fuel.moles
+					if(liquid)
+						liquid_level = liquid.amount
+						if(liquid.amount <= 0)
+							del liquid
+							liquid_level = 0
+
+					firelevel = (air_contents.oxygen + air_contents.toxins + fuel_level*1.5 + liquid_level*1.5) - (air_contents.carbon_dioxide*0.25)
+
+					firelevel = min(firelevel,vsc.IgnitionLevel*5)
+
+					if(firelevel > vsc.IgnitionLevel * 1.5 && (air_contents.toxins || fuel_level || liquid_level))
+						for(var/direction in cardinal)
+							if(S.air_check_directions&direction) //Grab all valid bordering tiles
+								var/turf/simulated/enemy_tile = get_step(S, direction)
+								if(istype(enemy_tile))
+									if(enemy_tile.fire_protection)
+										firelevel -= vsc.IgnitionLevel
+										continue
+									if(!(locate(/obj/fire) in enemy_tile) && prob( firelevel/(vsc.IgnitionLevel*0.1) ) )
+										new/obj/fire(enemy_tile,firelevel)
+									//else
+									//	world << "There's a fire there bitch."
+								//else
+								//	world << "[enemy_tile] cannot be spread to."
+					//else
+					//	world << "Not enough firelevel to spread: [firelevel]/[IgnitionLevel*1.5]"
+
+					var/datum/gas_mixture/flow = air_contents.remove_ratio(0.5)
+					//n = PV/RT, taking the volume of a single tile from the gas.
+
+					if(flow)
+
+						if(flow.oxygen > 0.3 && (flow.toxins || fuel_level || liquid))
+
+							if(firelevel > vsc.IgnitionLevel * 3.5)
+								icon_state = "3"
+								opacity = 1
+							else if(firelevel > vsc.IgnitionLevel * 2)
+								icon_state = "2"
+								opacity = 1
+							else
+								icon_state = "1"
+								opacity = 0
+
+							flow.temperature = max(PLASMA_MINIMUM_BURN_TEMPERATURE+0.1,flow.temperature)
+							flow.zburn(liquid)
+
+						else
+							del src
 
 
-turf/simulated/var/fire_protection = 0 //Protects newly extinguished tiles from being overrun again.
-turf/proc/apply_fire_protection()
-turf/simulated/apply_fire_protection()
-	fire_protection = world.time
-
-obj/effect/decal/cleanable/liquid_fuel
-	var/amount = 0
-datum/gas_mixture/proc/zburn(obj/effect/decal/cleanable/liquid_fuel/liquid, force_burn, no_check = 0)
-	. = 0
-	if((temperature > PHORON_MINIMUM_BURN_TEMPERATURE || force_burn) && (no_check ||check_recombustability(liquid)))
-		var/total_fuel = 0
-		var/total_oxidizers = 0
-
-		for(var/g in gas)
-			if(gas_data.flags[g] & XGM_GAS_FUEL)
-				total_fuel += gas[g]
-			if(gas_data.flags[g] & XGM_GAS_OXIDIZER)
-				total_oxidizers += gas[g]
-
-		if(liquid)
-		//Liquid Fuel
-			if(liquid.amount <= 0.1)
-				del liquid
+						S.assume_air(flow)
+					else
+						//world << "No air at all."
+						del src
+				else
+					del src
 			else
-				total_fuel += liquid.amount
+				//world << "Insufficient fire level for ignition: [firelevel]/[IgnitionLevel]"
+				del src
 
-		if(total_fuel == 0)
-			return 0
-
-		//Calculate the firelevel.
-		var/firelevel = calculate_firelevel(liquid, total_fuel, total_oxidizers, force = 1)
-
-		//get the current inner energy of the gas mix
-		//this must be taken here to prevent the addition or deletion of energy by a changing heat capacity
-		var/starting_energy = temperature * heat_capacity()
-
-		//determine the amount of oxygen used
-		var/used_oxidizers = min(total_oxidizers, total_fuel / 2)
-
-		//determine the amount of fuel actually used
-		var/used_fuel_ratio = min(2 * total_oxidizers , total_fuel) / total_fuel
-		total_fuel = total_fuel * used_fuel_ratio
-
-		var/total_reactants = total_fuel + used_oxidizers
-
-		//determine the amount of reactants actually reacting
-		var/used_reactants_ratio = min(max(total_reactants * firelevel / vsc.fire_firelevel_multiplier, 0.2), total_reactants) / total_reactants
-
-		//remove and add gasses as calculated
-		remove_by_flag(XGM_GAS_OXIDIZER, used_oxidizers * used_reactants_ratio)
-		remove_by_flag(XGM_GAS_FUEL, total_fuel * used_reactants_ratio)
-
-		adjust_gas("carbon_dioxide", max(total_fuel*used_reactants_ratio, 0))
-
-		if(liquid)
-			liquid.amount -= (liquid.amount * used_fuel_ratio * used_reactants_ratio) * 5 // liquid fuel burns 5 times as quick
-
-			if(liquid.amount <= 0) del liquid
-
-		//calculate the energy produced by the reaction and then set the new temperature of the mix
-		temperature = (starting_energy + vsc.fire_fuel_energy_release * total_fuel) / heat_capacity()
-
-		update_values()
-		. = total_reactants * used_reactants_ratio
-
-datum/gas_mixture/proc/check_recombustability(obj/effect/decal/cleanable/liquid_fuel/liquid)
-	. = 0
-	for(var/g in gas)
-		if(gas_data.flags[g] & XGM_GAS_OXIDIZER && gas[g] >= 0.1)
-			. = 1
-			break
-
-	if(!.)
-		return 0
-
-	if(liquid)
-		return 1
-
-	. = 0
-	for(var/g in gas)
-		if(gas_data.flags[g] & XGM_GAS_FUEL && gas[g] >= 0.1)
-			. = 1
-			break
-
-datum/gas_mixture/proc/check_combustability(obj/effect/decal/cleanable/liquid_fuel/liquid)
-	. = 0
-	for(var/g in gas)
-		if(gas_data.flags[g] & XGM_GAS_OXIDIZER && QUANTIZE(gas[g] * vsc.fire_consuption_rate) >= 0.1)
-			. = 1
-			break
-
-	if(!.)
-		return 0
-
-	if(liquid)
-		return 1
-
-	. = 0
-	for(var/g in gas)
-		if(gas_data.flags[g] & XGM_GAS_FUEL && QUANTIZE(gas[g] * vsc.fire_consuption_rate) >= 0.1)
-			. = 1
-			break
-
-datum/gas_mixture/proc/calculate_firelevel(obj/effect/decal/cleanable/liquid_fuel/liquid, total_fuel = null, total_oxidizers = null, force = 0)
-	//Calculates the firelevel based on one equation instead of having to do this multiple times in different areas.
-	var/firelevel = 0
-
-	if(force || check_recombustability(liquid))
-		if(isnull(total_fuel))
-			for(var/g in gas)
-				if(gas_data.flags[g] & XGM_GAS_FUEL)
-					total_fuel += gas[g]
-				if(gas_data.flags[g] & XGM_GAS_OXIDIZER)
-					total_oxidizers += gas[g]
-			if(liquid)
-				total_fuel += liquid.amount
-
-		var/total_combustables = (total_fuel + total_oxidizers)
-
-		if(total_combustables > 0)
-			//slows down the burning when the concentration of the reactants is low
-			var/dampening_multiplier = total_combustables / total_moles
-			//calculates how close the mixture of the reactants is to the optimum
-			var/mix_multiplier = 1 / (1 + (5 * ((total_oxidizers / total_combustables) ** 2)))
-			//toss everything together
-			firelevel = vsc.fire_firelevel_multiplier * mix_multiplier * dampening_multiplier
-
-	return max( 0, firelevel)
+			for(var/mob/living/carbon/M in loc)
+				M.FireBurn(firelevel/(vsc.IgnitionLevel*10))
 
 
-/mob/living/proc/FireBurn(var/firelevel, var/last_temperature, var/pressure)
-	var/mx = 5 * firelevel/vsc.fire_firelevel_multiplier * min(pressure / ONE_ATMOSPHERE, 1)
-	adjustFireLoss(2.5*mx)
+		New(newLoc,fl)
+			..()
+			dir = pick(cardinal)
+			ul_SetLuminosity(3)
+			firelevel = fl
+			for(var/mob/living/carbon/M in loc)
+				M.FireBurn(firelevel/(vsc.IgnitionLevel*10))
 
+		Del()
+			if (istype(loc, /turf/simulated))
+				src.ul_SetLuminosity(0)
 
-/mob/living/carbon/human/FireBurn(var/firelevel, var/last_temperature, var/pressure)
-	//Burns mobs due to fire. Respects heat transfer coefficients on various body parts.
-	//Due to TG reworking how fireprotection works, this is kinda less meaningful.
+				loc = null
 
-	//var/head_exposure = 1
-	//var/chest_exposure = 1
-	var/groin_exposure = 1
-	//var/legs_exposure = 1
-	//var/arms_exposure = 1
+			..()
 
-	//Get heat transfer coefficients for clothing.
+obj/liquid_fuel
+	icon = 'icons/effects/effects.dmi'
+	icon_state = "slube"
+	layer = TURF_LAYER+0.2
+	anchored = 1
+	var/amount = 1
 
-	for(var/obj/item/clothing/C in src)
-		if(l_hand == C || r_hand == C)
-			continue
-/* TODO:2015
-		if( C.max_heat_protection_temperature >= last_temperature )
-			if(C.body_parts_covered & HEAD)
-				head_exposure = 0
-			if(C.body_parts_covered & UPPER_TORSO)
-				chest_exposure = 0
-			if(C.body_parts_covered & LOWER_TORSO)
-				groin_exposure = 0
-			if(C.body_parts_covered & LEGS)
-				legs_exposure = 0
-			if(C.body_parts_covered & ARMS)
-				arms_exposure = 0
-*/
-	//minimize this for low-pressure enviroments
-	var/mx = 5 * firelevel/vsc.fire_firelevel_multiplier * min(pressure / ONE_ATMOSPHERE, 1)
+	New(newLoc)
+		for(var/obj/liquid_fuel/other in newLoc)
+			if(other != src)
+				other.amount += src.amount
+				del src
+		. = ..()
 
-	//Always check these damage procs first if fire damage isn't working. They're probably what's wrong.
-	adjustFireLoss(2.0*mx*groin_exposure)
+vs_control/var/switch_fire = 1
+
+turf/simulated/var/fire_protection = 0
+
+datum/gas_mixture/proc/zburn(obj/liquid_fuel/liquid)
+	if(vsc.switch_fire)
+		. = fire()
+		if(liquid && liquid.amount > 0)
+			oxygen -= fire_ratio_1
+			liquid.amount = max(liquid.amount-fire_ratio_1,0)
+			carbon_dioxide += fire_ratio_1
+			if(liquid.amount <= 0)
+				del liquid
+		return
+	if(temperature > PLASMA_MINIMUM_BURN_TEMPERATURE)
+		var
+			fuel_level = 0
+			datum/gas/volatile_fuel/fuel = locate() in trace_gases
+			liquid_level = 0
+		if(fuel) fuel_level = fuel.moles
+		if(liquid) liquid_level = liquid.amount
+		if(liquid.amount <= 0)
+			del liquid
+			liquid_level = 0
+		if(oxygen > 0.3 && (toxins || fuel_level || liquid_level))
+			if(toxins && temperature < PLASMA_UPPER_TEMPERATURE)
+				temperature += (vsc.FIRE_PLASMA_ENERGY_RELEASED*fire_ratio_1) / heat_capacity()
+
+			if((fuel_level || liquid_level) && temperature < PLASMA_UPPER_TEMPERATURE)
+				temperature += (vsc.FIRE_CARBON_ENERGY_RELEASED*fire_ratio_1) / heat_capacity()
+
+			if(toxins > fire_ratio_1)
+				oxygen -= vsc.OXY_TO_PLASMA*fire_ratio_1
+				toxins -= fire_ratio_1
+				carbon_dioxide += fire_ratio_1
+			else if(toxins)
+				oxygen -= toxins * vsc.OXY_TO_PLASMA
+				carbon_dioxide += toxins
+				toxins = 0
+
+			if(fuel_level > fire_ratio_1/1.5)
+				oxygen -= vsc.OXY_TO_PLASMA*fire_ratio_1
+				fuel.moles -= fire_ratio_1
+				carbon_dioxide += fire_ratio_1
+
+			else if(fuel_level)
+				oxygen -= fuel.moles * vsc.OXY_TO_PLASMA
+				carbon_dioxide += fuel.moles
+				fuel.moles = 0
+
+			if(liquid_level > 0)
+				oxygen -= fire_ratio_1
+				liquid.amount = max(liquid.amount-fire_ratio_1,0)
+				carbon_dioxide += fire_ratio_1
+				if(liquid.amount <= 0)
+					del liquid
+			return 1
+	return 0

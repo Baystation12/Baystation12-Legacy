@@ -3,8 +3,21 @@
 
 	var/turf/simulated/source = loc
 	var/turf/simulated/target = get_step(source,dir)
-	if(istype(source)) air_master.mark_for_update(source)
-	if(istype(target)) air_master.mark_for_update(target)
+
+	if(need_rebuild)
+		if(istype(source)) //Rebuild/update nearby group geometry
+			if(source.parent)
+				air_master.groups_to_rebuild += source.parent
+			else
+				air_master.tiles_to_update += source
+		if(istype(target))
+			if(target.parent)
+				air_master.groups_to_rebuild += target.parent
+			else
+				air_master.tiles_to_update += target
+	else
+		if(istype(source)) air_master.tiles_to_update += source
+		if(istype(target)) air_master.tiles_to_update += target
 
 	return 1
 

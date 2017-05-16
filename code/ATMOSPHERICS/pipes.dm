@@ -112,12 +112,20 @@ obj/machinery/atmospherics/pipe
 				..()
 
 			if(!node1)
+				var/turf/locT = src.loc
+				if(locT.zone)
+					if(locT.zone.space_tiles)
+						if(locT.zone.space_tiles.len >= 1)
+							return
 				parent.mingle_with_turf(get_step(loc, node1dir), volume)
 				if(!nodealert)
 					//world << "Missing node from [src] at [src.x],[src.y],[src.z]"
 					nodealert = 1
 
 			else if(!node2)
+				var/turf/locT = src.loc
+				if(locT.zone && length(locT.zone.space_tiles) >= 1)
+					return
 				parent.mingle_with_turf(get_step(loc, node2dir), volume)
 				if(!nodealert)
 					//world << "Missing node from [src] at [src.x],[src.y],[src.z]"
@@ -404,7 +412,7 @@ obj/machinery/atmospherics/pipe
 				air_temporary.volume = volume
 				air_temporary.temperature = T20C
 
-				air_temporary.adjust_gas("carbon_dioxide",(35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature))
+				air_temporary.carbon_dioxide = (35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature)
 
 				..()
 
@@ -417,7 +425,7 @@ obj/machinery/atmospherics/pipe
 				air_temporary.volume = volume
 				air_temporary.temperature = T20C
 
-				air_temporary.adjust_gas("phoron",(35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature))
+				air_temporary.toxins = (35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature)
 
 				..()
 
@@ -426,7 +434,14 @@ obj/machinery/atmospherics/pipe
 			name = "Pressure Tank (Oxygen + Plasma)"
 
 			New()
-				// TODO:2015 Fix?
+				air_temporary = new
+				air_temporary.volume = volume
+				air_temporary.temperature = T0C
+
+				var/datum/gas/oxygen_agent_b/trace_gas = new
+				trace_gas.moles = (35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature)
+
+				air_temporary.trace_gases += trace_gas
 
 				..()
 
@@ -440,7 +455,7 @@ obj/machinery/atmospherics/pipe
 				air_temporary.volume = volume
 				air_temporary.temperature = T20C
 
-				air_temporary.adjust_gas("oxygen",(35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature))
+				air_temporary.oxygen = (35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature)
 
 				..()
 
@@ -454,7 +469,7 @@ obj/machinery/atmospherics/pipe
 				air_temporary.volume = volume
 				air_temporary.temperature = T20C
 
-				air_temporary.adjust_gas("nitrogen",(35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature))
+				air_temporary.nitrogen = (35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature)
 
 				..()
 
@@ -468,8 +483,8 @@ obj/machinery/atmospherics/pipe
 				air_temporary.volume = volume
 				air_temporary.temperature = T20C
 
-				air_temporary.adjust_gas("oxygen",(35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature))
-				air_temporary.adjust_gas("nitrogen",(35*ONE_ATMOSPHERE)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature))
+				air_temporary.oxygen = (35*ONE_ATMOSPHERE*O2STANDARD)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature)
+				air_temporary.nitrogen = (35*ONE_ATMOSPHERE*N2STANDARD)*(air_temporary.volume)/(R_IDEAL_GAS_EQUATION*air_temporary.temperature)
 
 				..()
 
@@ -517,14 +532,14 @@ obj/machinery/atmospherics/pipe
 					O << "\red [user] has used the analyzer on \icon[icon]"
 
 				var/pressure = parent.air.return_pressure()
-				var/total_moles = parent.air.total_moles
+				var/total_moles = parent.air.total_moles()
 
 				user << "\blue Results of analysis of \icon[icon]"
 				if (total_moles>0)
-					var/o2_concentration = parent.air.gas["oxygen"]/total_moles
-					var/n2_concentration = parent.air.gas["nitrogen"]/total_moles
-					var/co2_concentration = parent.air.gas["carbon_dioxide"]/total_moles
-					var/plasma_concentration = parent.air.gas["phoron"]/total_moles
+					var/o2_concentration = parent.air.oxygen/total_moles
+					var/n2_concentration = parent.air.nitrogen/total_moles
+					var/co2_concentration = parent.air.carbon_dioxide/total_moles
+					var/plasma_concentration = parent.air.toxins/total_moles
 
 					var/unknown_concentration =  1-(o2_concentration+n2_concentration+co2_concentration+plasma_concentration)
 

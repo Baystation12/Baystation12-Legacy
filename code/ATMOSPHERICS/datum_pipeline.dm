@@ -1,4 +1,3 @@
-
 datum/pipeline
 	var/datum/gas_mixture/air
 
@@ -19,7 +18,7 @@ datum/pipeline
 
 		..()
 
-	proc/process()//This use to be called called from the pipe networks
+	proc/process()
 
 		//Check to see if pressure is within acceptable limits
 		var/pressure = air.return_pressure()
@@ -36,9 +35,21 @@ datum/pipeline
 
 		for(var/obj/machinery/atmospherics/pipe/member in members)
 			member.air_temporary = new
-			member.air_temporary.copy_from(air)
 			member.air_temporary.volume = member.volume
-			member.air_temporary.multiply(member.volume / air.volume)
+
+			member.air_temporary.oxygen = air.oxygen*member.volume/air.volume
+			member.air_temporary.nitrogen = air.nitrogen*member.volume/air.volume
+			member.air_temporary.toxins = air.toxins*member.volume/air.volume
+			member.air_temporary.carbon_dioxide = air.carbon_dioxide*member.volume/air.volume
+
+			member.air_temporary.temperature = air.temperature
+
+			if(air.trace_gases.len)
+				for(var/datum/gas/trace_gas in air.trace_gases)
+					var/datum/gas/corresponding = new trace_gas.type()
+					member.air_temporary.trace_gases += corresponding
+
+					corresponding.moles = trace_gas.moles*member.volume/air.volume
 
 	proc/build_pipeline(obj/machinery/atmospherics/pipe/base)
 		air = new
@@ -117,28 +128,17 @@ datum/pipeline
 		air_sample.volume = mingle_volume
 
 		if(istype(target) && target.zone)
-			//Have to consider preservation of group statuses
-			var/datum/gas_mixture/turf_copy = new
+			var/datum/gas_mixture
+				target_air = target.return_air()
+			air_sample.share_volume(target_air,1)
 
-			turf_copy.copy_from(target.zone.air)
-			turf_copy.volume = target.zone.air.volume //Copy a good representation of the turf from parent group
+		if(istype(target) && !target.processing)
+			if(target.air)
+				if(target.air.check_tile_graphic())
+					target.update_visuals(target.air)
 
-			equalize_gases(list(air_sample, turf_copy))
-			air.merge(air_sample)
-
-			turf_copy.subtract(target.zone.air)
-
-			target.zone.air.merge(turf_copy)
-
-		else
-			var/datum/gas_mixture/turf_air = target.return_air()
-
-			equalize_gases(list(air_sample, turf_air))
-			air.merge(air_sample)
-			//turf_air already modified by equalize_gases()
-
-		if(network)
-			network.update = 1
+		var/datum/pipe_network/net = return_network()
+		net.update = 1
 
 	proc/temperature_interact(turf/target, share_volume, thermal_conductivity)
 		var/total_heat_capacity = air.heat_capacity()
@@ -162,9 +162,9 @@ datum/pipeline
 				var/delta_temperature = 0
 				var/sharer_heat_capacity = 0
 
-				if(modeled_location.zone)
-					delta_temperature = (air.temperature - modeled_location.zone.air.temperature)
-					sharer_heat_capacity = modeled_location.zone.air.heat_capacity()
+				if(modeled_location.parent)// && modeled_location.parent.group_processing)
+					delta_temperature = (air.temperature - modeled_location.parent.air.temperature)
+					sharer_heat_capacity = modeled_location.parent.air.heat_capacity()
 				else
 					delta_temperature = (air.temperature - modeled_location.air.temperature)
 					sharer_heat_capacity = modeled_location.air.heat_capacity()
@@ -183,8 +183,14 @@ datum/pipeline
 
 				air.temperature += self_temperature_delta
 
-				if(modeled_location.zone)
-					modeled_location.zone.air.temperature += sharer_temperature_delta/modeled_location.zone.air.group_multiplier
+				if(modeled_location.parent)// && modeled_location.parent.group_processing)
+					if((abs(sharer_temperature_delta) > MINIMUM_TEMPERATURE_DELTA_TO_SUSPEND) && (abs(sharer_temperature_delta) > MINIMUM_TEMPERATURE_RATIO_TO_SUSPEND*modeled_location.parent.air.temperature))
+						//modeled_location.parent.suspend_group_processing()
+
+						modeled_location.air.temperature += sharer_temperature_delta
+
+					else
+						modeled_location.parent.air.temperature += sharer_temperature_delta/modeled_location.parent.air.group_multiplier
 				else
 					modeled_location.air.temperature += sharer_temperature_delta
 
@@ -197,17 +203,6 @@ datum/pipeline
 					(partial_heat_capacity*target.heat_capacity/(partial_heat_capacity+target.heat_capacity))
 
 				air.temperature -= heat/total_heat_capacity
-		if(network)
-			network.update = 1
 
-	//surface must be the surface area in m^2
-	proc/radiate_heat_to_space(surface, thermal_conductivity)
-		var/gas_density = air.total_moles/air.volume
-		thermal_conductivity *= min(gas_density / ( RADIATOR_OPTIMUM_PRESSURE/(R_IDEAL_GAS_EQUATION*T20C) ), 1)
-		
-		//if the h/e pipes radiate less than the AVERAGE_SOLAR_RADIATION, then they will heat up, otherwise they will cool down. It turns out the critical temperature is -26 C
-		var/heat_gain = surface*(AVERAGE_SOLAR_RADIATION - STEFAN_BOLTZMANN_CONSTANT*thermal_conductivity*(air.temperature - COSMIC_RADIATION_TEMPERATURE) ** 4)
-		
-		air.add_thermal_energy(heat_gain)
-		if(network)
-			network.update = 1
+		var/datum/pipe_network/net = return_network()
+		net.update = 1

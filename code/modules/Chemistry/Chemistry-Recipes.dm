@@ -265,7 +265,11 @@ datum
 						//target_tile.parent.suspend_group_processing()
 
 					var/datum/gas_mixture/napalm = new
-					napalm.adjust_gas("volatile_fuel",15)
+					var/datum/gas/volatile_fuel/fuel = new
+
+					fuel.moles = 15
+					napalm.trace_gases += fuel
+
 					target_tile.assume_air(napalm)
 
 					spawn (0) target_tile.hotspot_expose(SPARK_TEMP, 400)

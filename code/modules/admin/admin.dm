@@ -548,19 +548,19 @@
 			return
 	if(href_list["editairflow"])
 		if ((src.rank in list( "Primary Administrator", "Coder", "Host", "Super Administrator")))
-	//		vsc.ChangeSettingDialog(usr,vsc.settings) // TODO:2015 Fix
+			vsc.ChangeSettingDialog(usr,vsc.settings)
 		else
 			alert("You cannot perform this action. You must be of a higher administrative rank!", null, null, null, null, null)
 			return
 	if(href_list["editplasma"])
 		if ((src.rank in list( "Primary Administrator", "Coder", "Host", "Super Administrator")))
-	//		vsc.ChangeSettingDialog(usr,vsc.plc.settings)
+			vsc.ChangeSettingDialog(usr,vsc.plc.settings)
 		else
 			alert("You cannot perform this action. You must be of a higher administrative rank!", null, null, null, null, null)
 			return
 	if(href_list["savetweaks"])
 		if ((src.rank in list( "Primary Administrator", "Coder", "Host", "Super Administrator")))
-		//	SaveTweaks() // TODO:2015 FIX
+			SaveTweaks()
 			usr << "Settings saved."
 			world << "\blue <b>[key_name(usr)] saved the current settings.</b>"
 		else
@@ -568,7 +568,7 @@
 			return
 	if(href_list["loadtweaks"])
 		if ((src.rank in list( "Primary Administrator", "Coder", "Host", "Super Administrator")))
-		// 	LoadTweaks() // TODO:2015 FIX
+			LoadTweaks()
 			usr << "Settings loaded."
 			world << "\blue <b>[key_name(usr)] loaded settings from the savefile.</b>"
 		else
