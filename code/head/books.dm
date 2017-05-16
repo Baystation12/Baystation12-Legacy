@@ -71,7 +71,7 @@ datum/bookhand/proc/GetBooks()
 		return
 	while(query.NextRow())
 		var/list/data = query.GetRowData()
-		AddBook(data["title"], data["author"], data["text"], data["category"])
+		AddBook(data["title"], data["author"], data["text"], data["cat"])
 
 datum/bookhand/proc/AddBook(var/title, var/author, var/text, var/category)
 	var/datum/book/book = new
@@ -203,7 +203,7 @@ obj/machinery/writersdesk/attack_hand(mob/user)
 		if("No")
 			return
 
-	var/database/query/query = new("INSERT INTO books (ckey, title, author, text, category) VALUES (?, ?, ?, ?, ?)",  user.ckey, title, author, text, cat)
+	var/database/query/query = new("INSERT INTO books (ckey, title, author, text, cat) VALUES (?, ?, ?, ?, ?)",  user.ckey, title, author, text, cat)
 	if(!query.Execute(dbcon))
 		log_and_message_admins("Book creation failed: [query.ErrorMsg()]")
 		user << "Sadly something went wrong..."
