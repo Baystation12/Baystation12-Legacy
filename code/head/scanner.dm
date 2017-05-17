@@ -31,8 +31,8 @@ obj/machinery/scanner/attack_hand(mob/living/carbon/human/user)
 	var/list/marks = list()
 	var/age = user.age
 	var/gender = user.gender
-	var/DBQuery/cquery = dbcon.NewQuery("SELECT * from jobban WHERE ckey='[user.ckey]'")
-	if(!cquery.Execute()) return
+	var/database/query/cquery = new("SELECT * from jobban WHERE ckey=?", user.ckey)
+	if(!cquery.Execute(dbcon)) return
 	else
 		while(cquery.NextRow())
 			var/list/row = cquery.GetRowData()

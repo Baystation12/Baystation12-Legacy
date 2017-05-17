@@ -3,8 +3,8 @@
 	spawn ()
 		if (ismob(src) && src.key)
 		//	var/list/keys = list()
-			var/DBQuery/cquery = dbcon.NewQuery("SELECT `medal` FROM `medals` WHERE ckey='[src.ckey]'")
-			if(!cquery.Execute())
+			var/database/query/cquery = new("SELECT `medal` FROM `medals` WHERE ckey=?", ckey)
+			if(!cquery.Execute(dbcon))
 				message_admins(cquery.ErrorMsg())
 				#ifdef DEBUG
 				debug(cquery.ErrorMsg())
@@ -14,13 +14,11 @@
 					var/list/column_data = cquery.GetRowData()
 					if(title == column_data["medal"])
 						return
-			var/medaldesc2 = dbcon.Quote(desc)
-			var/tit2 = dbcon.Quote(title)
-			var/DBQuery/xquery = dbcon.NewQuery("REPLACE INTO `medals` (`ckey`, `medal`, `medaldesc`, `medaldiff`) VALUES ('[src.ckey]', [tit2], [medaldesc2], '[diff]')")
-			if(!xquery.Execute())
-				message_admins(xquery.ErrorMsg())
+			var/database/query/query = new("REPLACE INTO `medals` (`ckey`, `medal`, `medaldesc`, `medaldiff`) VALUES (?, ?, ?, ?)", ckey, title, desc, diff)
+			if(!query.Execute(dbcon))
+				message_admins(query.ErrorMsg())
 				#ifdef DEBUG
-				debug(xquery.ErrorMsg())
+				debug(query.ErrorMsg())
 				#endif
 				src << "Medal save failed"
 			var/H
@@ -41,10 +39,10 @@
 mob/verb/show_medal()
 	set name = "Show Achievements"
 	set category = "Commands"
-	var/DBQuery/xquery = dbcon.NewQuery("SELECT `ckey` FROM `medals` WHERE ckey='[src.ckey]'")
-	var/DBQuery/gquery = dbcon.NewQuery("SELECT * FROM `medals` WHERE ckey='[src.ckey]'")
+	var/database/query/xquery = new("SELECT `ckey` FROM `medals` WHERE ckey=?", ckey)
+	var/database/query/gquery = new("SELECT * FROM `medals` WHERE ckey=?", ckey)
 	var/list/keys = list()
-	if(xquery.Execute())
+	if(xquery.Execute(dbcon))
 		while(xquery.NextRow())
 			keys = xquery.GetRowData()
 	else
@@ -53,7 +51,7 @@ mob/verb/show_medal()
 		#ifdef DEBUG
 		debug(xquery.ErrorMsg())
 		#endif
-	if(gquery.Execute())
+	if(gquery.Execute(dbcon))
 		while(gquery.NextRow())
 			var/list/column_data = gquery.GetRowData()
 			for(var/P in keys)

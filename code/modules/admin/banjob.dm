@@ -7,18 +7,18 @@
 		bywho << "Job ban not added. Please retry and complete the reason field."
 		return
 	if (!M || !M.key || !M.client) return
-	var/DBQuery/xquery = dbcon.NewQuery("INSERT INTO jobban VALUES ('[M.ckey]','[rank]')")
-	var/DBQuery/yquery = dbcon.NewQuery("INSERT INTO jobbanlog (`ckey`,`targetckey`,`rank`,`why`) VALUES ('[bywho.ckey]','[M.ckey]','[rank]','[input]')")
-	if(!xquery.Execute())
+	var/database/query/xquery = new("INSERT INTO jobban VALUES (?, ?)", M.ckey, rank)
+	var/database/query/yquery = new("INSERT INTO jobbanlog (`ckey`,`targetckey`,`rank`,`why`) VALUES (?, ?, ?, ?)", bywho.ckey, M.ckey, rank, input)
+	if(!xquery.Execute(dbcon))
 		log_admin("[xquery.ErrorMsg()]")
-	if(!yquery.Execute())
+	if(!yquery.Execute(dbcon))
 		log_admin("[yquery.ErrorMsg()]")
 	M << "\red You have been jobbanned from [rank], reason: [input]"
 
 /proc/jobban_isbanned(mob/M, rank)
-	var/DBQuery/cquery = dbcon.NewQuery("SELECT `rank` FROM `jobban` WHERE ckey='[M.ckey]'")
+	var/database/query/cquery = new("SELECT `rank` FROM `jobban` WHERE ckey=?", M.ckey)
 	var/list/ranks = list()
-	if(!cquery.Execute())
+	if(!cquery.Execute(dbcon))
 		log_admin("[cquery.ErrorMsg()]")
 	else
 		while(cquery.NextRow())
@@ -30,29 +30,29 @@
 		return 0
 
 /proc/jobban_unban(mob/M, rank)
-	var/DBQuery/xquery = dbcon.NewQuery("DELETE FROM jobban WHERE `ckey`='[M.ckey]' AND `rank`='[rank]'")
-	var/DBQuery/yquery = dbcon.NewQuery("DELETE FROM jobbanlog WHERE `targetckey`='[M.ckey]' AND `rank`='[rank]'")
-	if(!xquery.Execute())
+	var/database/query/xquery = new("DELETE FROM jobban WHERE `ckey`=? AND `rank`=?", M.ckey, rank)
+	var/database/query/yquery = new("DELETE FROM jobbanlog WHERE `targetckey`=? AND `rank`=?", M.ckey, rank)
+	if(!xquery.Execute(dbcon))
 		log_admin("[xquery.ErrorMsg()]")
-	if(!yquery.Execute())
+	if(!yquery.Execute(dbcon))
 		log_admin("[yquery.ErrorMsg()]")
 	log_admin("[key_name(usr)] unbanned [M.ckey] from [rank]")
 	M << "\red You have been unjobbanned from [rank]."
 
 /proc/jobban_remove(key, rank)
-	var/DBQuery/xquery = dbcon.NewQuery("DELETE FROM jobban WHERE `ckey`='[key]' AND `rank`='[rank]'")
-	var/DBQuery/yquery = dbcon.NewQuery("DELETE FROM jobbanlog WHERE `targetckey`='[key]' AND `rank`='[rank]'")
-	if(!xquery.Execute())
+	var/database/query/xquery = new("DELETE FROM jobban WHERE `ckey`=? AND `rank`=?", key, rank)
+	var/database/query/yquery = new("DELETE FROM jobbanlog WHERE `targetckey`=? AND `rank`=?", key, rank)
+	if(!xquery.Execute(dbcon))
 		log_admin("[xquery.ErrorMsg()]")
-	if(!yquery.Execute())
+	if(!yquery.Execute(dbcon))
 		log_admin("[yquery.ErrorMsg()]")
 	log_admin("[key_name(usr)] unbanned [key] from [rank]")
 	//M << "\red You have been unjobbanned from [rank]."
 
 /obj/admins/proc/showjobbans()
 	var/html = "<table>"
-	var/DBQuery/cquery = dbcon.NewQuery("SELECT DISTINCT targetckey from jobbanlog")
-	if(!cquery.Execute())
+	var/database/query/cquery = new("SELECT DISTINCT targetckey from jobbanlog")
+	if(!cquery.Execute(dbcon))
 		log_admin("[cquery.ErrorMsg()]")
 	else
 		while(cquery.NextRow())

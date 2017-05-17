@@ -29,7 +29,6 @@ datum/controller/game_controller
 			//There can be only one master.
 
 		spawn(0)
-			world.startmysql()
 			world.load_mode()
 			world.load_motd()
 			world.load_rules()
@@ -53,7 +52,7 @@ datum/controller/game_controller
 
 		if(!air_master)
 			air_master = new /datum/controller/air_system()
-			air_master.Setup()
+			air_master.setup()
 
 		plmaster = new /obj/overlay(  )
 		plmaster.icon = 'icons/effects/tile_effects.dmi'
@@ -123,9 +122,6 @@ datum/controller/game_controller
 
 		world << "\red \b Initializations complete."
 
-		spawn(0)
-			air_master.Start()
-
 		/*var/list/l = new /list
 		var/savefile/f = new("closet.sav")
 		var/turf/t = locate(38,56,7)
@@ -173,13 +169,13 @@ datum/controller/game_controller
 
 		//world.keepalive()
 		// reduce frequency of the air process
-	/*	sleep(1 )
+		sleep(1 )
 		if(tick % 5 == 0)
 			ticker_debug = "Airprocess"
 			air_master.process()
 			if(world.cpu > max_cpu)
 				max_cpu = world.cpu
-				max_process = ticker_debug*/
+				max_process = ticker_debug
 
 		sleep(1 )
 		ticker_debug = "Sun calc"
@@ -211,9 +207,9 @@ datum/controller/game_controller
 
 		sleep(1)
 
-	//	for(var/obj/fire/F in world) // TODO:2015 , handled in ZAS?
-	//		ticker_debug = "fire processing"
-	//		F.process()
+		for(var/obj/fire/F in world)
+			ticker_debug = "fire processing"
+			F.process()
 		if(world.cpu > max_cpu)
 			max_cpu = world.cpu
 			max_process = ticker_debug

@@ -248,8 +248,8 @@ datum/preferences
 		dat += "<tt><center>"
 		var/list/slot = list()
 		var/list/slots = list()
-		var/DBQuery/query = dbcon.NewQuery("SELECT `slot`,`slotname` FROM `players` WHERE ckey='[usr.ckey]'")
-		if(!query.Execute())
+		var/database/query/query = new("SELECT `slot`,`slotname` FROM `players` WHERE ckey=?", usr.ckey)
+		if(!query.Execute(dbcon))
 			usr << "ERROR"
 		while(query.NextRow())
 			var/list/row = query.GetRowData()
@@ -555,8 +555,8 @@ datum/preferences
 			var/slot = link_tags["removeslot"]
 			if(!slot)
 				return
-			var/DBQuery/query = dbcon.NewQuery("DELETE FROM `players`WHERE ckey='[usr.ckey]' AND slot='[slot]'")
-			if(!query.Execute())
+			var/database/query/query = new("DELETE FROM `players`WHERE ckey=? AND slot=?", usr.ckey, slot)
+			if(!query.Execute(dbcon))
 				usr << query.ErrorMsg()
 				usr << "Report this."
 			else

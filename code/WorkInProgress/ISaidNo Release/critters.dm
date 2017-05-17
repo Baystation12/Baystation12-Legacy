@@ -146,7 +146,7 @@
 			src.CritterDeath()
 		return
 
-	process()
+	proc/process()
 		if (!src.alive) return
 		check_health()
 		switch(task)

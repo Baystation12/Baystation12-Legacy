@@ -26,7 +26,11 @@
 				//target.parent.suspend_group_processing()
 
 			var/datum/gas_mixture/payload = new
-			payload.adjust_gas("sleeping_agent",30)
+			var/datum/gas/sleeping_agent/trace_gas = new
+
+			trace_gas.moles = 30
+			payload += trace_gas
+
 			target.air.merge(payload)
 
 	spawn(0)
@@ -40,7 +44,7 @@
 
 			var/datum/gas_mixture/payload = new
 
-			payload.adjust_gas("phoron",30)
+			payload.toxins = 30
 
 			target.air.merge(payload)
 

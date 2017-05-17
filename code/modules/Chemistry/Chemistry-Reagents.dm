@@ -196,9 +196,9 @@ datum
 							T:overlays -= T:wet_overlay
 							T:wet_overlay = null
 
-				var/hotspot = (locate(/obj/fire) in T)
+				var/hotspot = (locate(/obj/hotspot) in T)
 				if(hotspot)
-					var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles )
+					var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles() )
 					lowertemp.temperature = max( min(lowertemp.temperature-2000,lowertemp.temperature / 2) ,0)
 					lowertemp.react()
 					T.assume_air(lowertemp)
@@ -208,9 +208,9 @@ datum
 			reaction_obj(var/obj/O, var/volume)
 				src = null
 				var/turf/T = get_turf(O)
-				var/hotspot = (locate(/obj/fire) in T)
+				var/hotspot = (locate(/obj/hotspot) in T)
 				if(hotspot)
-					var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles )
+					var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles() )
 					lowertemp.temperature = max( min(lowertemp.temperature-2000,lowertemp.temperature / 2) ,0)
 					lowertemp.react()
 					T.assume_air(lowertemp)
@@ -771,13 +771,19 @@ datum
 				src = null
 				var/turf/the_turf = get_turf(O)
 				var/datum/gas_mixture/napalm = new
-				napalm.adjust_gas("volatile_fuel",15)
+				var/datum/gas/volatile_fuel/fuel = new
+				fuel.moles = 15
+				napalm.trace_gases += fuel
 				the_turf.assume_air(napalm)
+				new /obj/liquid_fuel(the_turf)
 			reaction_turf(var/turf/T, var/volume)
 				src = null
 				var/datum/gas_mixture/napalm = new
-				napalm.adjust_gas("volatile_fuel",15)
+				var/datum/gas/volatile_fuel/fuel = new
+				fuel.moles = 15
+				napalm.trace_gases += fuel
 				T.assume_air(napalm)
+				new /obj/liquid_fuel(T)
 				return
 
 		coffee
@@ -862,12 +868,16 @@ datum
 				var/turf/the_turf = get_turf(O)
 				if(the_turf)
 					var/datum/gas_mixture/napalm = new
-					napalm.adjust_gas("volatile_fuel",5)
+					var/datum/gas/volatile_fuel/fuel = new
+					fuel.moles = 5
+					napalm.trace_gases += fuel
 					the_turf.assume_air(napalm)
 			reaction_turf(var/turf/T, var/volume)
 				src = null
 				var/datum/gas_mixture/napalm = new
-				napalm.adjust_gas("volatile_fuel",5)
+				var/datum/gas/volatile_fuel/fuel = new
+				fuel.moles = 5
+				napalm.trace_gases += fuel
 				T.assume_air(napalm)
 				return
 

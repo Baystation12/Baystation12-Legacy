@@ -62,6 +62,12 @@
 			if(!connected_port)
 				return 0
 
+			if(!istype(connected_port,/obj/machinery/atmos_new/connector))
+
+				var/datum/pipe_network/network = connected_port.return_network(src)
+				if(network)
+					network.gases -= air_contents
+
 			anchored = 0
 
 			connected_port.connected_device = null
@@ -95,20 +101,30 @@
 				else
 					user << "\blue [name] failed to connect to the port."
 					return
+			else
+				possible_port = locate(/obj/machinery/atmos_new/connector) in loc
+				if(connect(possible_port))
+					user << "\blue You connect [name] to the port."
+					return
+				else
+					user << "\blue [name] failed to connect to the port."
+					return
+				user << "\blue Nothing happens."
+				return
 
 	else if ((istype(W, /obj/item/device/analyzer) || (istype(W, /obj/item/device/pda))) && get_dist(user, src) <= 1)
 		for (var/mob/O in viewers(user, null))
 			O << "\red [user] has used [W] on \icon[icon]"
 
 		var/pressure = air_contents.return_pressure()
-		var/total_moles = air_contents.total_moles
+		var/total_moles = air_contents.total_moles()
 
 		user << "\blue Results of analysis of \icon[icon]"
 		if (total_moles>0)
-			var/o2_concentration = air_contents.gas["oxygen"] /total_moles
-			var/n2_concentration = air_contents.gas["nitrogen"]/total_moles
-			var/co2_concentration = air_contents.gas["carbon_dioxide"]/total_moles
-			var/plasma_concentration = air_contents.gas["phoron"]/total_moles
+			var/o2_concentration = air_contents.oxygen/total_moles
+			var/n2_concentration = air_contents.nitrogen/total_moles
+			var/co2_concentration = air_contents.carbon_dioxide/total_moles
+			var/plasma_concentration = air_contents.toxins/total_moles
 
 			var/unknown_concentration =  1-(o2_concentration+n2_concentration+co2_concentration+plasma_concentration)
 

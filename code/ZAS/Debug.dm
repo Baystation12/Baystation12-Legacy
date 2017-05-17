@@ -1,20 +1,54 @@
-var/image/assigned = image('icons/Testing/Zone.dmi', icon_state = "assigned")
-var/image/created = image('icons/Testing/Zone.dmi', icon_state = "created")
-var/image/merged = image('icons/Testing/Zone.dmi', icon_state = "merged")
-var/image/invalid_zone = image('icons/Testing/Zone.dmi', icon_state = "invalid")
-var/image/air_blocked = image('icons/Testing/Zone.dmi', icon_state = "block")
-var/image/zone_blocked = image('icons/Testing/Zone.dmi', icon_state = "zoneblock")
-var/image/blocked = image('icons/Testing/Zone.dmi', icon_state = "fullblock")
-var/image/mark = image('icons/Testing/Zone.dmi', icon_state = "mark")
+client/proc/Zone_Info(turf/T as null|turf)
+	set category = "Debug"
+	if(T)
+		if(T.zone)
+			T.zone.DebugDisplay(mob)
+		else
+			mob << "No zone here."
+	else
+		for(T in world)
+			T.overlays -= 'icons/debug_space.dmi'
+			T.overlays -= 'icons/debug_group.dmi'
+			T.overlays -= 'icons/debug_connect.dmi'
 
-/connection_edge/var/dbg_out = 0
+zone/proc
+	DebugDisplay(mob/M)
+		if(!dbg_output)
+			dbg_output = 1
+			for(var/turf/T in contents)
+				T.overlays += 'icons/debug_group.dmi'
 
-/turf/var/tmp/dbg_img
-/turf/proc/dbg(image/img, d = 0)
-	if(d > 0) img.dir = d
-	overlays -= dbg_img
-	overlays += img
-	dbg_img = img
+			for(var/turf/space/S in space_tiles)
+				S.overlays += 'icons/debug_space.dmi'
 
-proc/soft_assert(thing,fail)
-	if(!thing) message_admins(fail)
+			M << "<u>Zone Air Contents</u>"
+			M << "Oxygen: [air.oxygen]"
+			M << "Nitrogen: [air.nitrogen]"
+			M << "Plasma: [air.toxins]"
+			M << "Carbon Dioxide: [air.carbon_dioxide]"
+			M << "Temperature: [air.temperature]"
+			M << "Heat Energy: [air.thermal_energy()]"
+			M << "Pressure: [air.return_pressure()]"
+			M << ""
+			M << "<u>Connections: [length(connections)]</u>"
+
+			for(var/connection/C in connections)
+				M << "[C.A] --> [C.B] [(C.indirect?"Indirect":"Direct")]"
+				C.A.overlays += 'icons/debug_connect.dmi'
+				C.B.overlays += 'icons/debug_connect.dmi'
+				spawn(50)
+					C.A.overlays -= 'icons/debug_connect.dmi'
+					C.B.overlays -= 'icons/debug_connect.dmi'
+
+		else
+			dbg_output = 0
+
+			for(var/turf/T in contents)
+				T.overlays -= 'icons/debug_group.dmi'
+
+			for(var/turf/space/S in space_tiles)
+				S.overlays -= 'icons/debug_space.dmi'
+		for(var/zone/Z in ZAS_zones)
+			if(Z.air == air)
+				var/turf/zloc = pick(Z.contents)
+				M << "\red Illegal air datum shared by: [zloc.loc.name]"

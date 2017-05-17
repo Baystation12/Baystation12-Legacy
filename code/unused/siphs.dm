@@ -155,7 +155,7 @@
 			if(1.0)
 				if( !portable() ) use_power(50, ENVIRON)
 				if (src.holding)
-					var/t1 = src.gas.total_moles
+					var/t1 = src.gas.total_moles()
 					var/t2 = t1
 					var/t = src.t_per
 					if (src.t_per > t2)
@@ -163,7 +163,7 @@
 					src.holding.gas.transfer_from(src.gas, t)
 				else
 					if (T)
-						var/t1 = src.gas.total_moles
+						var/t1 = src.gas.total_moles()
 						var/t2 = t1
 						var/t = src.t_per
 						if (src.t_per > t2)
@@ -172,7 +172,7 @@
 			if(2.0)
 				if( !portable() ) use_power(50, ENVIRON)
 				if (src.holding)
-					var/t1 = src.gas.total_moles
+					var/t1 = src.gas.total_moles()
 					var/t2 = src.maximum - t1
 					var/t = src.t_per
 					if (src.t_per > t2)
@@ -180,7 +180,7 @@
 					src.gas.transfer_from(src.holding.gas, t)
 				else
 					if (T)
-						var/t1 = src.gas.total_moles
+						var/t1 = src.gas.total_moles()
 						var/t2 = src.maximum - t1
 						var/t = src.t_per
 						if (t > t2)
@@ -195,7 +195,7 @@
 						if (world.time > src.f_time)
 							src.gas.extract_toxs(T)
 							if( !portable() ) use_power(150, ENVIRON)
-							var/contain = src.gas.total_moles
+							var/contain = src.gas.total_moles()
 							if (contain > 1.3E8)
 								src.gas.turf_add(T, 1.3E8 - contain)
 
@@ -308,7 +308,7 @@
 			if(1.0)
 				if( !portable() ) use_power(50, ENVIRON)
 				if (src.holding)
-					var/t1 = src.gas.total_moles
+					var/t1 = src.gas.total_moles()
 					var/t2 = t1
 					var/t = src.t_per
 					if (src.t_per > t2)
@@ -316,7 +316,7 @@
 					src.holding.gas.transfer_from(src.gas, t)
 				else
 					if (T)
-						var/t1 = src.gas.total_moles
+						var/t1 = src.gas.total_moles()
 						var/t2 = t1
 						var/t = src.t_per
 						if (src.t_per > t2)
@@ -325,7 +325,7 @@
 			if(2.0)
 				if( !portable() ) use_power(50, ENVIRON)
 				if (src.holding)
-					var/t1 = src.gas.total_moles
+					var/t1 = src.gas.total_moles()
 					var/t2 = src.maximum - t1
 					var/t = src.t_per
 					if (src.t_per > t2)
@@ -333,19 +333,19 @@
 					src.gas.transfer_from(src.holding.gas, t)
 				else
 					if (T)
-						var/t1 = src.gas.total_moles
+						var/t1 = src.gas.total_moles()
 						var/t2 = src.maximum - t1
 						var/t = src.t_per
 						if (t > t2)
 							t = t2
-						//var/g = gas.total_moles
-						//if(dbg) world.log << "VP0 : [t] from turf: [gas.total_moles]"
+						//var/g = gas.total_moles()
+						//if(dbg) world.log << "VP0 : [t] from turf: [gas.total_moles()]"
 						//if(dbg) Air()
 
 						src.gas.turf_take(T, t)
-						//if(dbg) world.log << "VP1 : now [gas.total_moles]"
+						//if(dbg) world.log << "VP1 : now [gas.total_moles()]"
 
-						//if(dbg) world.log << "[gas.total_moles-g] ([t]) from turf to siph"
+						//if(dbg) world.log << "[gas.total_moles()-g] ([t]) from turf to siph"
 
 						//if(dbg) Air()
 			if(4.0)
@@ -359,7 +359,7 @@
 						if (world.time > src.f_time)
 							var/difference = CELLSTANDARD - (T.oxygen + T.n2)
 							if (difference > 0)
-								var/t1 = src.gas.total_moles
+								var/t1 = src.gas.total_moles()
 								if (difference > t1)
 									difference = t1
 								src.gas.turf_add(T, difference)

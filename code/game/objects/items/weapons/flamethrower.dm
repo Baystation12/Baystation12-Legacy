@@ -180,14 +180,14 @@ GETLINEEEEEEEEEEEEEEEEEEEEE
 
 		var/pressure = src.part4.air_contents.return_pressure()
 
-		var/total_moles = src.part4.air_contents.total_moles
+		var/total_moles = src.part4.air_contents.total_moles()
 
 		user << "\blue Results of analysis of \icon[icon]"
 		if (total_moles>0)
-			var/o2_concentration = src.part4.air_contents.gas["oxygen"]/total_moles
-			var/n2_concentration = src.part4.air_contents.gas["nitrogen"]/total_moles
-			var/co2_concentration = src.part4.air_contents.gas["carbon_dioxide"]/total_moles
-			var/plasma_concentration = src.part4.air_contents.gas["phoron"]/total_moles
+			var/o2_concentration = src.part4.air_contents.oxygen/total_moles
+			var/n2_concentration = src.part4.air_contents.nitrogen/total_moles
+			var/co2_concentration = src.part4.air_contents.carbon_dioxide/total_moles
+			var/plasma_concentration = src.part4.air_contents.toxins/total_moles
 
 			var/unknown_concentration =  1-(o2_concentration+n2_concentration+co2_concentration+plasma_concentration)
 
@@ -255,7 +255,7 @@ GETLINEEEEEEEEEEEEEEEEEEEEE
 	usr.machine = src
 	if (href_list["light"])
 		if(!src.part4)	return
-		if(src.part4.air_contents.gas["phoron"] < 1)	return
+		if(src.part4.air_contents.toxins < 1)	return
 		lit = !(lit)
 		if(lit)
 			icon_state = "flamethrower1"
@@ -330,9 +330,10 @@ GETLINEEEEEEEEEEEEEEEEEEEEE
 	//TODO: DEFERRED Consider checking to make sure tank pressure is high enough before doing this...
 
 	//Transfer current tank air contents to turf
-	var/howmuch = part4.air_contents.gas["phoron"] * 0.10
-	part4.air_contents.adjust_gas("phoron",-howmuch)
-
+	var/howmuch = part4.air_contents.toxins * 0.10
+	part4.air_contents.toxins -= howmuch
+	var/obj/liquid_fuel/liquid = new(target)
+	liquid.amount += howmuch
 
 	//Burn it based on transfered gas
 	target.hotspot_expose(SPARK_TEMP,300)

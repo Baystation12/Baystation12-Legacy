@@ -78,7 +78,7 @@
 	if(istype(loc, /obj/machinery/atmospherics/unary/cryo_cell)) return
 
 	var/datum/gas_mixture/environment = loc.return_air(1)
-	var/datum/gas_mixture/breath
+	var/datum/air_group/breath
 	// HACK NEED CHANGING LATER
 	if(health < 0)
 		losebreath++
@@ -101,7 +101,7 @@
 				breath = location_as_object.handle_internal_lifeform(src, BREATH_VOLUME)
 			else if(istype(loc, /turf/))
 				var/breath_moles = 0
-				breath_moles = environment.total_moles*BREATH_PERCENTAGE
+				breath_moles = environment.total_moles()*BREATH_PERCENTAGE
 				breath = loc.remove_air(breath_moles)
 
 		else //Still give containing object the chance to interact
@@ -180,14 +180,14 @@
 		bodytemperature += adjust_body_temperature(bodytemperature, loc_temp, 1/thermal_protection)
 
 	var/turf/simulated/T = loc
-/*	if(istype(T)) // HANDLED BY ZAS TODO:2015
+	if(istype(T))
 		if(T.active_hotspot)
 			var/volume_coefficient = T.active_hotspot.volume / CELL_VOLUME
 			var/resistance_coefficient = 1/max(add_fire_protection(T.active_hotspot.temperature),0.5)
 
-			FireBurn(volume_coefficient*resistance_coefficient)*/
+			FireBurn(volume_coefficient*resistance_coefficient)
 
-	if(environment.gas["phoron"] > CAN_CONTAMINATE)
+	if(environment.toxins > CAN_CONTAMINATE)
 		contaminate()
 		pl_effects()
 
@@ -482,12 +482,12 @@
 	if(nodamage)
 		return
 
-	if(!breath || (breath.total_moles == 0))
+	if(!breath || (breath.total_moles() == 0))
 		losebreath++
 		// only start losing health once there's no air in the lungs
 		if(losebreath > 3)
 			if(health > 0)
-				oxyloss += 8*OXYGEN_LOSS
+				oxyloss += 8*vsc.OXYGEN_LOSS
 			else
 				oxyloss += 5
 			oxygen_alert = max(oxygen_alert, 1)
@@ -500,14 +500,14 @@
 	var/SA_para_min = 1
 	var/SA_sleep_min = 5
 	var/oxygen_used = 0
-	var/breath_pressure = (breath.total_moles*R_IDEAL_GAS_EQUATION*breath.temperature)/BREATH_VOLUME
+	var/breath_pressure = (breath.total_moles()*R_IDEAL_GAS_EQUATION*breath.temperature)/BREATH_VOLUME
 
 	//Partial pressure of the O2 in our breath
-	var/O2_pp = (breath.gas["oxygen"]/breath.total_moles)*breath_pressure
+	var/O2_pp = (breath.oxygen/breath.total_moles())*breath_pressure
 	// Same, but for the toxins
-	var/Toxins_pp = (breath.gas["phoron"]/breath.total_moles)*breath_pressure
+	var/Toxins_pp = (breath.toxins/breath.total_moles())*breath_pressure
 	// And CO2, lets say a PP of more than 10 will be bad (It's a little less really, but eh, being passed out all round aint no fun)
-	var/CO2_pp = (breath.gas["carbon_dioxide"]/breath.total_moles)*breath_pressure
+	var/CO2_pp = (breath.carbon_dioxide/breath.total_moles())*breath_pressure
 
 	if(O2_pp < safe_oxygen_min) 			// Too little oxygen
 		if(O2_pp > 0)
@@ -516,12 +516,12 @@
 			if(losebreath > 3)
 				var/ratio = safe_oxygen_min/O2_pp
 				oxyloss += min(5*ratio, 7)
-				oxygen_used = breath.gas["oxygen"]*ratio/6
+				oxygen_used = breath.oxygen*ratio/6
 		else
 			losebreath++
 			// only start losing health once there's no air in the lungs
 			if(losebreath > 3)
-				oxyloss += 7*OXYGEN_LOSS
+				oxyloss += 7*vsc.OXYGEN_LOSS
 		oxygen_alert = max(oxygen_alert, 1)
 	/*else if (O2_pp > safe_oxygen_max) 		// Too much oxygen (commented this out for now, I'll deal with pressure damage elsewhere I suppose)
 		spawn(0) emote("cough")
@@ -531,24 +531,24 @@
 		oxygen_alert = max(oxygen_alert, 1)*/
 	else 									// We're in safe limits
 		oxyloss = max(oxyloss-5, 0)
-		oxygen_used = breath.gas["oxygen"]/6
+		oxygen_used = breath.oxygen/6
 		oxygen_alert = 0
 		losebreath = 0
 		// can't go below 0
 		losebreath = max(losebreath, 0)
 
 
-	breath.gas["oxygen"] -= oxygen_used
-	breath.gas["carbon_dioxide"] += oxygen_used
+	breath.oxygen -= oxygen_used
+	breath.carbon_dioxide += oxygen_used
 
 	if(CO2_pp > safe_co2_max)
 		if(!co2overloadtime) // If it's the first breath with too much CO2 in it, lets start a counter, then have them pass out after 12s or so.
 			co2overloadtime = world.time
 		else if(world.time - co2overloadtime > 120)
 			paralysis = max(paralysis, 3)
-			oxyloss += 3*OXYGEN_LOSS // Lets hurt em a little, let them know we mean business
+			oxyloss += 3*vsc.OXYGEN_LOSS // Lets hurt em a little, let them know we mean business
 			if(world.time - co2overloadtime > 300) // They've been in here 30s now, lets start to kill them for their own good!
-				oxyloss += 8*OXYGEN_LOSS
+				oxyloss += 8*vsc.OXYGEN_LOSS
 		if(prob(20)) // Lets give them some chance to know somethings not right though I guess.
 			emote("cough")
 
@@ -556,40 +556,22 @@
 		co2overloadtime = 0
 //gasmasksarecool
 	if(Toxins_pp > safe_toxins_max) // Too much toxins
-		var/toxs = breath.gas["phoron"]
+		var/toxs = breath.toxins
 		if(istype(wear_mask,/obj/item/clothing/mask/gas)&& wear_mask:filter > 0)
-			toxs = toxs - (breath.gas["phoron"] * 0.90)
+			toxs = toxs - (breath.toxins * 0.90)
 			wear_mask:damage_filter()
 		if(toxs >= safe_toxins_max)
 			var/ratio = toxs/safe_toxins_max
-			toxloss += min(ratio*PLASMA_DMG, 10*PLASMA_DMG)	//Limit amount of damage toxin exposure can do per second
+			toxloss += min(ratio*vsc.plc.PLASMA_DMG, 10*vsc.plc.PLASMA_DMG)	//Limit amount of damage toxin exposure can do per second
 			toxins_alert = max(toxins_alert, 1)
-			if(PLASMA_HALLUCINATION)
+			if(vsc.plc.PLASMA_HALLUCINATION)
 				hallucination += 8
 	else
 		toxins_alert = 0
 
-	var/SA_pp = (breath.gas["sleeping_agent"]/breath.total_moles)*breath_pressure
-	if(SA_pp > 0)
-		if(istype(wear_mask,/obj/item/clothing/mask/gas) && wear_mask:filter > 0)
-			SA_pp = SA_pp - (breath.gas["sleeping_agent"] * 0.40)
-			wear_mask:damage_filter()
-		if(SA_pp > SA_para_min) // Enough to make us paralysed for a bit
-			paralysis = max(paralysis, 3) // 3 gives them one second to wake up and run away a bit!
-			if(SA_pp > SA_sleep_min) // Enough to make us sleep as well
-				sleeping = max(sleeping, 2)
-			if(vsc.plc.N2O_HALLUCINATION)
-				hallucination += 12
-		else if(SA_pp > 0.01)	// There is sleeping gas in their lungs, but only a little, so give them a bit of a warning
-			if(prob(20))
-				emote(pick("giggle", "laugh"))
-			if(vsc.plc.N2O_HALLUCINATION)
-				hallucination += 8
-// TODO:2015 FIX?!
-/*
 	if(breath.trace_gases.len)	// If there's some other shit in the air lets deal with it here.
 		for(var/datum/gas/sleeping_agent/SA in breath.trace_gases)
-			var/SA_pp = (SA.moles/breath.total_moles)*breath_pressure
+			var/SA_pp = (SA.moles/breath.total_moles())*breath_pressure
 			if(istype(wear_mask,/obj/item/clothing/mask/gas) && wear_mask:filter > 0)
 				SA_pp = SA_pp - (SA.moles * 0.40)
 				wear_mask:damage_filter()
@@ -604,7 +586,7 @@
 					emote(pick("giggle", "laugh"))
 				if(vsc.plc.N2O_HALLUCINATION)
 					hallucination += 8
-*/
+
 
 	if(breath.temperature > (T0C+66) && !(mutations & 2)) // Hot air hurts :(
 		if(prob(20))
@@ -634,9 +616,9 @@
 	var/air_pressure = environment.return_pressure()
 
 	// Same, but for the toxins
-	if(environment.total_moles <= 0)
+	if(environment.total_moles() <= 0)
 		return
-	var/Toxins_pp = (environment.gas["phoron"]/environment.total_moles)*air_pressure
+	var/Toxins_pp = (environment.toxins/environment.total_moles())*air_pressure
 
 	if(air_pressure < 75 || losebreath > 3)
 		oxygen_alert = max(oxygen_alert,1)
@@ -651,7 +633,7 @@
 /mob/living/carbon/proc/handle_temperature_damage(body_part, exposed_temperature, exposed_intensity)
 	if(nodamage)
 		return
-	var/discomfort = min(abs(exposed_temperature - bodytemperature)*(exposed_intensity)/2000000, 1.0) * 0.5 // TODO:2015 not right value
+	var/discomfort = min(abs(exposed_temperature - bodytemperature)*(exposed_intensity)/2000000, 1.0) * vsc.TEMP_DMG
 
 	switch(body_part)
 		if(HEAD)
